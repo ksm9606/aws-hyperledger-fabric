@@ -1,0 +1,1626 @@
+# 1. 개요
+AWS EC2와 docker swarm을 사용해, amazon managed blockchain 없이 하이퍼레저 패브릭 설치 및 raft 오더러 서비스 사용
+
+# 2. 네트워크 구성
+
+RAFT 오더링 서비스를 사용하기 위해, AWS EC2에서 인스턴스 5개 생성.
+각 인스턴스는 블록체인 노드가 된다. 
+
+HOST1 : Orderer1, CA, peer0.org1, msp, couchdb, 웹 클라이언트 서버, cli</br>
+HOST2 : Orderer2, CA, peer0.org2, msp, couchdb, 웹 백엔드 서버 </br>
+HOST3 : Orderer3, CA, peer0.org3, msp, couchdb </br>
+HOST4 : Orderer4, CA, peer0.org4, msp, couchdb </br>
+HOST5 : Orderer5, CA, peer0.org5, msp, couchdb</br>
+
+5개의 조직 전부 한 채널에 들어갈 예정
+
+
+
+# 3. 환경설정
+
+## 3.1 AWS EC2서버 생성
+
+AWS EC2로 접속 후 인스턴스 시작
+
+![image](https://user-images.githubusercontent.com/68358404/127076627-1cccaeb3-f67f-450c-b281-daecc84bc868.png)
+
+Ubuntu Server 20.04 LTS 버전 클릭
+
+![image](https://user-images.githubusercontent.com/68358404/127076676-d00b870a-2f9e-4459-889a-b08a69e7ea79.png)
+
+t2.small 선택
+
+![image](https://user-images.githubusercontent.com/54825978/127791023-f95db5fe-874c-48b3-8d33-336d111208ff.png)
+
+단계 6: 보안 그룹 구성
+모든 TCP, 모든UDP, 사용자 지정 ICMP/IPv4
+
+![image](https://user-images.githubusercontent.com/54825978/128298477-8905181d-8d03-4f47-9dc9-eb6347821634.png)
+
+
+- 첫 보안 그룹을 생성 이후, 기존 보안 그룹 선택
+
+검토 및 시작 클릭.
+
+![image](https://user-images.githubusercontent.com/68358404/127077280-14295dfd-166d-4a89-8d1c-74a9cd8c97d5.png)
+
+기존 키가 있는 사람은 그대로 사용하고, 새 키가 필요한 사람은 새 키 패어 생성에서 이름을 설정하고 키 페어를 다운로드 한다.
+키 페어는 매우 중요함으로, 잘 보관해야하고 절대로 github에 올리는 실수를 하지 말아야한다. 아니면 aws 계정 정지 당한다.
+
+![image](https://user-images.githubusercontent.com/68358404/127077390-fa2d6a1a-5756-4e11-84a0-794e3168ba28.png)
+
+이런 식으로 EC2 서버 다섯개 생성
+
+![image](https://user-images.githubusercontent.com/68358404/127077804-0e9f77c4-5d8e-44d1-b982-7fbbb79c64d3.png)
+
+## 3.2 탄력적 IP 주소
+
+탄력적 IP 클릭 
+
+![image](https://user-images.githubusercontent.com/54825978/127792155-891ae1a8-dee0-4419-918b-dc6fe8d68bd0.png)
+
+탄력적 IP 주소 연결
+
+![image](https://user-images.githubusercontent.com/54825978/127792193-ae8d4117-e1ea-4787-97c2-19dd97c0ad40.png)
+
+연결할 인스턴스 선택
+
+![image](https://user-images.githubusercontent.com/54825978/127792240-456c4dde-c8e4-44bc-af77-b973d1e656a6.png)
+
+프라이빗 IP 주소 선택 후 연결
+
+![image](https://user-images.githubusercontent.com/54825978/127792260-cf4f4c6e-a806-4d3c-86c8-14e98ff1b42f.png)
+
+
+
+
+## 3.3 하이퍼레저 패브릭 환경설정 설치
+
+DOCKER, GOLANG, NVM, ANGULAR, CURL, GIT, JQ 설치
+
+서버 연결
+
+![image](https://user-images.githubusercontent.com/68358404/127081550-04a57e6c-a3fd-4ded-af08-e36e884615ec.png)
+
+SSH 클라이언트 클릭 후 복사
+
+![image](https://user-images.githubusercontent.com/68358404/127081638-d497029b-64ec-453b-b3f0-ac0263dab467.png)
+
+key가 있는 경로에 git bash 실행
+
+![image](https://user-images.githubusercontent.com/68358404/127081779-87b554fd-741f-457a-929d-7af24bfe52b3.png)
+
+복사한 접속 명령어 붙여넣기 (shift + insert) 그리고 yes를 입력하면 aws 서버 접속
+
+![image](https://user-images.githubusercontent.com/68358404/127082667-35b68668-8fd6-431e-a13d-51fa14b49812.png)
+
+필요한 패키지 설치, 업그레이드
+
+```
+sudo apt-get update
+sudo apt-get upgrade
+```
+
+GO 언어 설치
+
+```
+cd /usr/local
+sudo wget https://golang.org/dl/go1.16.6.linux-amd64.tar.gz
+```
+
+tar.ga 압축풀기 
+
+```
+sudo tar -xvf go1.16.6.linux-amd64.tar.gz
+sudo rm -rf go1.16.6.linux-amd64.tar.gz
+```
+
+GO 환경변수 설정
+
+```
+vi ~/.profile
+```
+
+i 를 눌러 insert 모드로 바꾼 후 밑에 환경변수 삽입, wq! 저장
+
+```
+export GOROOT=/usr/local/go
+export GOPATH=$HOME/go
+export PATH=$GOPATH/bin:$GOROOT/bin:$PATH
+```
+
+- Go 가 설치된 위치 설정
+- Project 를 위한 GOPATH 의 위치 설정. 아래에 (src), pkg, bin 폴더가 생길 것이다.
+- 실행파일이 저장될 위치들인 $GOPATH/bin 와 $GOROOT/bin 디렉토리를 PATH 에 추가해준다.
+
+```
+. ~/.profile
+```
+
+환경변수 확인해보기
+
+```
+echo = $GOPATH
+```
+
+nvm 설치
+
+```
+wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+```
+
+nvm 설치 후
+
+```
+. ~/.profile
+nvm install --lts
+```
+
+angular 설치
+
+```
+npm install -g @angular/cli
+```
+
+jq 설치
+
+```
+sudo apt install jq
+```
+
+도커 설치
+
+```
+sudo apt install docker.io
+```
+```
+sudo systemctl enable --now docker
+sudo usermod -aG docker ubuntu
+sudo su - ubuntu
+```
+
+도커 컴포즈 설치
+
+```
+sudo curl -L https://github.com/docker/compose/releases/download/1.29.2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+docker-compose -version 
+```
+
+
+# 4. Docker-Swarm
+
+HOST1에 cli 기능과 docker_swarm 을 사용할 예정
+docker_swarm을 통해 5개의 서버를 관리할 예정
+
+HOST1에 접속 (docker swarm join --token {token 정보} {HOST1 IP:2377})
+
+docker-swarm 초기화
+
+```
+< HOST 1에서 >
+docker swarm init --advertise-addr <HOST1 private ip>
+ex)
+docker swarm init --advertise-addr 13.209.56.166
+docker swarm join-token manager
+```
+
+결과 (token 값과 host1 ip + 포트번호)
+
+![image](https://user-images.githubusercontent.com/68358404/127111468-9729205a-2817-4246-9961-a6c122a9317b.png)
+
+HOST2 ~ 5 에서 docker swarm join --token {token 정보} {HOST1 IP:2377} --advertise-addr HOST 2~5 ip 입력
+
+```
+< HOST 2 ~ 5에서 >
+docker swarm join --token SWMTKN-1-2os9a69d4x62zfpbb2ti7oetquslvk8pqzq0gjyam1zx6dvgzg-a83blf8ypxfeh5rhjk6f3140x 13.209.56.166:2377 --advertise-addr 13.124.175.72
+ 
+docker swarm join --token SWMTKN-1-2os9a69d4x62zfpbb2ti7oetquslvk8pqzq0gjyam1zx6dvgzg-a83blf8ypxfeh5rhjk6f3140x 13.209.56.166:2377 --advertise-addr 3.36.180.104
+
+docker swarm join --token SWMTKN-1-2os9a69d4x62zfpbb2ti7oetquslvk8pqzq0gjyam1zx6dvgzg-a83blf8ypxfeh5rhjk6f3140x 13.209.56.166:2377 --advertise-addr 3.36.151.247
+
+docker swarm join --token SWMTKN-1-2os9a69d4x62zfpbb2ti7oetquslvk8pqzq0gjyam1zx6dvgzg-a83blf8ypxfeh5rhjk6f3140x 13.209.56.166:2377 --advertise-addr 54.180.58.25
+```
+
+성공
+
+![image](https://user-images.githubusercontent.com/68358404/127103183-e5473d8c-6dce-4ef6-a06b-e1aa6bf22b2c.png)
+
+docker-swarm 을 사용하면 docker 로 띄워진 peer 들끼리 통신, orderer 와의 통신 등 docker-daemon 간의 network 를 설정해야 한다. 따라서 통신을 위한 overlay network 를 만든다.
+
+```
+< HOST 1에서 >
+docker network create --attachable --driver overlay first-network
+docker network ls
+```
+
+![image](https://user-images.githubusercontent.com/68358404/127112966-a4063474-d3d1-4a5d-b7ce-9a8a6f4e80d1.png)
+![image](https://user-images.githubusercontent.com/68358404/127113099-2f0788c4-63a7-42a2-89af-870889b3ab63.png)
+
+※ 혹시 토큰 정보를 잃어버린 경우 docker swarm join-token {manager | worker} 를 이용해서 찾으면 된다.
+
+※ 토큰 정보는 중요한 정보이다. 지금은 실습을 이해하기 위해 공개했지만, 외부에 공개하면 안되는 정보이다. 만약 노출되었다면 docker swarm join-token --rotate {manager | worker} 를 이용해서 토큰을 변경할 수 있다.
+
+
+
+
+하이퍼레저 패브릭 설치
+
+```
+cd ~/
+mkdir -p ./go/src/github.com/hyperledger/
+cd ~/go/src/github.com/hyperledger/
+curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.12 1.5.0 0.4.22
+```
+
+
+# 5. 데모
+## 1단계 : HOST 불러오기
+
+모든 인스턴스 접속
+![image](https://user-images.githubusercontent.com/54825978/127250303-1f05f4b9-d30b-41ab-b736-2cfced32b60b.png)
+
+
+## 2단계 : Docker Swarm으로 오버레이 네트워크 구성
+```
+docker network ls
+```
+HOST2~5 에서 HOST1의 네트워크와 동일한 네트워크 ID를 사용하는지 확인
+
+![image](https://user-images.githubusercontent.com/54825978/127250276-75e7cf39-5971-40ea-8243-1922f69b5aee.png)
+![image](https://user-images.githubusercontent.com/54825978/127250557-b2503013-f488-4fb6-9c45-1a0bf2dff483.png)
+
+
+## 3단계 : HOST1에서 패브릭 네트워크 자료를 준비하고 다른 사람에게 복사
+중요한 부분 중 하나는 모든 구성 요소가 동일한 암호화 자료를 공유하는지 확인하는 것입니다. </br>
+호스트 1을 사용하여 자료를 만들고 다른 호스트에 복사합니다. </br>
+이론적으로 신원(인증서 및 서명 키)이 필요한 체계를 따르도록 하기만 하면 됩니다. </br>
+조직(예: org1)의 인증서는 동일한 CA(ca.org1)에서 발급하고 서명합니다. 이것은 cryptogen을 사용하여 보장됩니다 .</br>
+단순화를 위해 이 데모에서는 호스트 1에 모든 자료를 만들고 전체 디렉토리를 다른 호스트에 복사합니다.</br>
+
+#### HOST1에서
+```
+cd fabric-samples
+mkdir raft-5node-swarm
+cd raft-5node-swarm
+```
+우리는 첫 번째 네트워크에서 직접 crypto-config.yaml및 configtx.yaml파일을 복사 합니다. (참여조직5개, 조직 당 peer1개 ,,, 코드 수정)
+```
+cp ../first-network/crypto-config.yaml . 
+cp ../first-network/configtx.yaml .
+```
+### crypto-config.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+# ---------------------------------------------------------------------------
+# "OrdererOrgs" - Definition of organizations managing orderer nodes
+# ---------------------------------------------------------------------------
+OrdererOrgs:
+  # ---------------------------------------------------------------------------
+  # Orderer
+  # ---------------------------------------------------------------------------
+  - Name: Orderer
+    Domain: example.com
+    EnableNodeOUs: true
+    # ---------------------------------------------------------------------------
+    # "Specs" - See PeerOrgs below for complete description
+    # ---------------------------------------------------------------------------
+    Specs:
+      - Hostname: orderer
+      - Hostname: orderer2
+      - Hostname: orderer3
+      - Hostname: orderer4
+      - Hostname: orderer5
+
+# ---------------------------------------------------------------------------
+# "PeerOrgs" - Definition of organizations managing peer nodes
+# ---------------------------------------------------------------------------
+PeerOrgs:
+  # ---------------------------------------------------------------------------
+  # Org1
+  # ---------------------------------------------------------------------------
+  - Name: Org1
+    Domain: org1.example.com
+    EnableNodeOUs: true
+    # ---------------------------------------------------------------------------
+    # "Specs"
+    # ---------------------------------------------------------------------------
+    # Uncomment this section to enable the explicit definition of hosts in your
+    # configuration.  Most users will want to use Template, below
+    #
+    # Specs is an array of Spec entries.  Each Spec entry consists of two fields:
+    #   - Hostname:   (Required) The desired hostname, sans the domain.
+    #   - CommonName: (Optional) Specifies the template or explicit override for
+    #                 the CN.  By default, this is the template:
+    #
+    #                              "{{.Hostname}}.{{.Domain}}"
+    #
+    #                 which obtains its values from the Spec.Hostname and
+    #                 Org.Domain, respectively.
+    # ---------------------------------------------------------------------------
+    # Specs:
+    #   - Hostname: foo # implicitly "foo.org1.example.com"
+    #     CommonName: foo27.org5.example.com # overrides Hostname-based FQDN set above
+    #   - Hostname: bar
+    #   - Hostname: baz
+    # ---------------------------------------------------------------------------
+    # "Template"
+    # ---------------------------------------------------------------------------
+    # Allows for the definition of 1 or more hosts that are created sequentially
+    # from a template. By default, this looks like "peer%d" from 0 to Count-1.
+    # You may override the number of nodes (Count), the starting index (Start)
+    # or the template used to construct the name (Hostname).
+    #
+    # Note: Template and Specs are not mutually exclusive.  You may define both
+    # sections and the aggregate nodes will be created for you.  Take care with
+    # name collisions
+    # ---------------------------------------------------------------------------
+    Template:
+      Count: 2
+      # Start: 5
+      # Hostname: {{.Prefix}}{{.Index}} # default
+    # ---------------------------------------------------------------------------
+    # "Users"
+    # ---------------------------------------------------------------------------
+    # Count: The number of user accounts _in addition_ to Admin
+    # ---------------------------------------------------------------------------
+    Users:
+      Count: 1
+  # ---------------------------------------------------------------------------
+  # Org2: See "Org1" for full specification
+  # ---------------------------------------------------------------------------
+  - Name: Org2
+    Domain: org2.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: Org3
+    Domain: org3.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: Org4
+    Domain: org4.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+
+  - Name: Org5
+    Domain: org5.example.com
+    EnableNodeOUs: true
+    Template:
+      Count: 2
+    Users:
+      Count: 1
+```
+### configtx.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+---
+################################################################################
+#
+#   Section: Organizations
+#
+#   - This section defines the different organizational identities which will
+#   be referenced later in the configuration.
+#
+################################################################################
+Organizations:
+
+    # SampleOrg defines an MSP using the sampleconfig.  It should never be used
+    # in production but may be used as a template for other definitions
+    - &OrdererOrg
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: OrdererOrg
+
+        # ID to load the MSP definition as
+        ID: OrdererMSP
+
+        # MSPDir is the filesystem path which contains the MSP configuration
+        MSPDir: crypto-config/ordererOrganizations/example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Writers:
+                Type: Signature
+                Rule: "OR('OrdererMSP.member')"
+            Admins:
+                Type: Signature
+                Rule: "OR('OrdererMSP.admin')"
+
+    - &Org1
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Org1MSP
+
+        # ID to load the MSP definition as
+        ID: Org1MSP
+
+        MSPDir: crypto-config/peerOrganizations/org1.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org1MSP.admin', 'Org1MSP.peer', 'Org1MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org1MSP.admin', 'Org1MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org1MSP.admin')"
+
+        # leave this flag set to true.
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.org1.example.com
+              Port: 7051
+
+    - &Org2
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Org2MSP
+
+        # ID to load the MSP definition as
+        ID: Org2MSP
+
+        MSPDir: crypto-config/peerOrganizations/org2.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org2MSP.admin', 'Org2MSP.peer', 'Org2MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org2MSP.admin', 'Org2MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org2MSP.admin')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.org2.example.com
+              Port: 8051
+
+    - &Org3
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Org3MSP
+
+        # ID to load the MSP definition as
+        ID: Org3MSP
+
+        MSPDir: crypto-config/peerOrganizations/org3.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org3MSP.admin', 'Org3MSP.peer', 'Org3MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org3MSP.admin', 'Org3MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org3MSP.admin')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.org3.example.com
+              Port: 9051
+
+
+    - &Org4
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Org4MSP
+
+        # ID to load the MSP definition as
+        ID: Org4MSP
+
+        MSPDir: crypto-config/peerOrganizations/org4.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org4MSP.admin', 'Org4MSP.peer', 'Org4MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org4MSP.admin', 'Org4MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org4MSP.admin')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.org4.example.com
+              Port: 10051
+
+
+    - &Org5
+        # DefaultOrg defines the organization which is used in the sampleconfig
+        # of the fabric.git development environment
+        Name: Org5MSP
+
+        # ID to load the MSP definition as
+        ID: Org5MSP
+
+        MSPDir: crypto-config/peerOrganizations/org5.example.com/msp
+
+        # Policies defines the set of policies at this level of the config tree
+        # For organization policies, their canonical path is usually
+        #   /Channel/<Application|Orderer>/<OrgName>/<PolicyName>
+        Policies:
+            Readers:
+                Type: Signature
+                Rule: "OR('Org5MSP.admin', 'Org5MSP.peer', 'Org5MSP.client')"
+            Writers:
+                Type: Signature
+                Rule: "OR('Org5MSP.admin', 'Org5MSP.client')"
+            Admins:
+                Type: Signature
+                Rule: "OR('Org5MSP.admin')"
+
+        AnchorPeers:
+            # AnchorPeers defines the location of peers which can be used
+            # for cross org gossip communication.  Note, this value is only
+            # encoded in the genesis block in the Application section context
+            - Host: peer0.org5.example.com
+              Port: 11051
+
+################################################################################
+#
+#   SECTION: Capabilities
+#
+#   - This section defines the capabilities of fabric network. This is a new
+#   concept as of v1.1.0 and should not be utilized in mixed networks with
+#   v1.0.x peers and orderers.  Capabilities define features which must be
+#   present in a fabric binary for that binary to safely participate in the
+#   fabric network.  For instance, if a new MSP type is added, newer binaries
+#   might recognize and validate the signatures from this type, while older
+#   binaries without this support would be unable to validate those
+#   transactions.  This could lead to different versions of the fabric binaries
+#   having different world states.  Instead, defining a capability for a channel
+#   informs those binaries without this capability that they must cease
+#   processing transactions until they have been upgraded.  For v1.0.x if any
+#   capabilities are defined (including a map with all capabilities turned off)
+#   then the v1.0.x peer will deliberately crash.
+#
+################################################################################
+Capabilities:
+    # Channel capabilities apply to both the orderers and the peers and must be
+    # supported by both.
+    # Set the value of the capability to true to require it.
+    Channel: &ChannelCapabilities
+        # V1.4.3 for Channel is a catchall flag for behavior which has been
+        # determined to be desired for all orderers and peers running at the v1.4.3
+        # level, but which would be incompatible with orderers and peers from
+        # prior releases.
+        # Prior to enabling V1.4.3 channel capabilities, ensure that all
+        # orderers and peers on a channel are at v1.4.3 or later.
+        V1_4_3: true
+        # V1.3 for Channel enables the new non-backwards compatible
+        # features and fixes of fabric v1.3
+        V1_3: false
+        # V1.1 for Channel enables the new non-backwards compatible
+        # features and fixes of fabric v1.1
+        V1_1: false
+
+    # Orderer capabilities apply only to the orderers, and may be safely
+    # used with prior release peers.
+    # Set the value of the capability to true to require it.
+    Orderer: &OrdererCapabilities
+        # V1.4.2 for Orderer is a catchall flag for behavior which has been
+        # determined to be desired for all orderers running at the v1.4.2
+        # level, but which would be incompatible with orderers from prior releases.
+        # Prior to enabling V1.4.2 orderer capabilities, ensure that all
+        # orderers on a channel are at v1.4.2 or later.
+        V1_4_2: true
+        # V1.1 for Orderer enables the new non-backwards compatible
+        # features and fixes of fabric v1.1
+        V1_1: false
+
+    # Application capabilities apply only to the peer network, and may be safely
+    # used with prior release orderers.
+    # Set the value of the capability to true to require it.
+    Application: &ApplicationCapabilities
+        # V1.4.2 for Application enables the new non-backwards compatible
+        # features and fixes of fabric v1.4.2.
+        V1_4_2: true
+        # V1.3 for Application enables the new non-backwards compatible
+        # features and fixes of fabric v1.3.
+        V1_3: false
+        # V1.2 for Application enables the new non-backwards compatible
+        # features and fixes of fabric v1.2 (note, this need not be set if
+        # later version capabilities are set)
+        V1_2: false
+        # V1.1 for Application enables the new non-backwards compatible
+        # features and fixes of fabric v1.1 (note, this need not be set if
+        # later version capabilities are set).
+        V1_1: false
+
+################################################################################
+#
+#   SECTION: Application
+#
+#   - This section defines the values to encode into a config transaction or
+#   genesis block for application related parameters
+#
+################################################################################
+Application: &ApplicationDefaults
+
+    # Organizations is the list of orgs which are defined as participants on
+    # the application side of the network
+    Organizations:
+
+    # Policies defines the set of policies at this level of the config tree
+    # For Application policies, their canonical path is
+    #   /Channel/Application/<PolicyName>
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
+    Capabilities:
+        <<: *ApplicationCapabilities
+################################################################################
+#
+#   SECTION: Orderer
+#
+#   - This section defines the values to encode into a config transaction or
+#   genesis block for orderer related parameters
+#
+################################################################################
+Orderer: &OrdererDefaults
+
+    # Orderer Type: The orderer implementation to start
+    # Available types are "solo","kafka"  and "etcdraft"
+    OrdererType: solo
+
+    Addresses:
+        - orderer.example.com:7050
+
+    # Batch Timeout: The amount of time to wait before creating a batch
+    BatchTimeout: 2s
+
+    # Batch Size: Controls the number of messages batched into a block
+    BatchSize:
+
+        # Max Message Count: The maximum number of messages to permit in a batch
+        MaxMessageCount: 10
+
+        # Absolute Max Bytes: The absolute maximum number of bytes allowed for
+        # the serialized messages in a batch.
+        AbsoluteMaxBytes: 99 MB
+
+        # Preferred Max Bytes: The preferred maximum number of bytes allowed for
+        # the serialized messages in a batch. A message larger than the preferred
+        # max bytes will result in a batch larger than preferred max bytes.
+        PreferredMaxBytes: 512 KB
+
+    Kafka:
+        # Brokers: A list of Kafka brokers to which the orderer connects
+        # NOTE: Use IP:port notation
+        Brokers:
+            - 127.0.0.1:9092
+
+    # EtcdRaft defines configuration which must be set when the "etcdraft"
+    # orderertype is chosen.
+    EtcdRaft:
+        # The set of Raft replicas for this network. For the etcd/raft-based
+        # implementation, we expect every replica to also be an OSN. Therefore,
+        # a subset of the host:port items enumerated in this list should be
+        # replicated under the Orderer.Addresses key above.
+        Consenters:
+            - Host: orderer.example.com
+              Port: 7050
+              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+            - Host: orderer2.example.com
+              Port: 7050
+              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+            - Host: orderer3.example.com
+              Port: 7050
+              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+            - Host: orderer4.example.com
+              Port: 7050
+              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+            - Host: orderer5.example.com
+              Port: 7050
+              ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+              ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+
+    # Organizations is the list of orgs which are defined as participants on
+    # the orderer side of the network
+    Organizations:
+
+    # Policies defines the set of policies at this level of the config tree
+    # For Orderer policies, their canonical path is
+    #   /Channel/Orderer/<PolicyName>
+    Policies:
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+        # BlockValidation specifies what signatures must be included in the block
+        # from the orderer for the peer to validate it.
+        BlockValidation:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+
+################################################################################
+#
+#   CHANNEL
+#
+#   This section defines the values to encode into a config transaction or
+#   genesis block for channel related parameters.
+#
+################################################################################
+Channel: &ChannelDefaults
+    # Policies defines the set of policies at this level of the config tree
+    # For Channel policies, their canonical path is
+    #   /Channel/<PolicyName>
+    Policies:
+        # Who may invoke the 'Deliver' API
+        Readers:
+            Type: ImplicitMeta
+            Rule: "ANY Readers"
+        # Who may invoke the 'Broadcast' API
+        Writers:
+            Type: ImplicitMeta
+            Rule: "ANY Writers"
+        # By default, who may modify elements at this config level
+        Admins:
+            Type: ImplicitMeta
+            Rule: "MAJORITY Admins"
+
+    # Capabilities describes the channel level capabilities, see the
+    # dedicated Capabilities section elsewhere in this file for a full
+    # description
+    Capabilities:
+        <<: *ChannelCapabilities
+
+################################################################################
+#
+#   Profile
+#
+#   - Different configuration profiles may be encoded here to be specified
+#   as parameters to the configtxgen tool
+#
+################################################################################
+Profiles:
+
+    TwoOrgsOrdererGenesis:
+        <<: *ChannelDefaults
+        Orderer:
+            <<: *OrdererDefaults
+            Organizations:
+                - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                    - *Org1
+                    - *Org2
+                    - *Org3
+                    - *Org4
+                    - *Org5
+    FiveOrgsChannel:
+        Consortium: SampleConsortium
+        <<: *ChannelDefaults
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+                - *Org1
+                - *Org2
+                - *Org3
+                - *Org4
+                - *Org5
+            Capabilities:
+                <<: *ApplicationCapabilities
+
+    SampleDevModeKafka:
+        <<: *ChannelDefaults
+        Capabilities:
+            <<: *ChannelCapabilities
+        Orderer:
+            <<: *OrdererDefaults
+            OrdererType: kafka
+            Kafka:
+                Brokers:
+                - kafka.example.com:9092
+
+            Organizations:
+            - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+            - <<: *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                - *Org1
+                - *Org2
+                - *Org3
+                - *Org4
+                - *Org5
+
+    SampleMultiNodeEtcdRaft:
+        <<: *ChannelDefaults
+        Capabilities:
+            <<: *ChannelCapabilities
+        Orderer:
+            <<: *OrdererDefaults
+            OrdererType: etcdraft
+            EtcdRaft:
+                Consenters:
+                - Host: orderer.example.com
+                  Port: 7050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/server.crt
+                - Host: orderer2.example.com
+                  Port: 8050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/server.crt
+                - Host: orderer3.example.com
+                  Port: 9050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/server.crt
+                - Host: orderer4.example.com
+                  Port: 10050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/server.crt
+                - Host: orderer5.example.com
+                  Port: 11050
+                  ClientTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+                  ServerTLSCert: crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/server.crt
+            Addresses:
+                - orderer.example.com:7050
+                - orderer2.example.com:8050
+                - orderer3.example.com:9050
+                - orderer4.example.com:10050
+                - orderer5.example.com:11050
+
+            Organizations:
+            - *OrdererOrg
+            Capabilities:
+                <<: *OrdererCapabilities
+        Application:
+            <<: *ApplicationDefaults
+            Organizations:
+            - <<: *OrdererOrg
+        Consortiums:
+            SampleConsortium:
+                Organizations:
+                - *Org1
+                - *Org2
+                - *Org3
+                - *Org4
+                - *Org5
+```
+
+
+그런 다음 필요한 재료를 생성합니다.
+```
+../bin/cryptogen generate --config=./crypto-config.yaml
+
+export FABRIC_CFG_PATH=$PWD
+
+mkdir channel-artifacts
+
+../bin/configtxgen -profile SampleMultiNodeEtcdRaft -outputBlock ./channel-artifacts/genesis.block
+
+../bin/configtxgen -profile FiveOrgsChannel -outputCreateChannelTx ./channel-artifacts/channel.tx -channelID mychannel
+
+../bin/configtxgen -profile FiveOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org1MSPanchors.tx -channelID mychannel -asOrg Org1MSP
+
+../bin/configtxgen -profile FiveOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org2MSPanchors.tx -channelID mychannel -asOrg Org2MSP
+
+../bin/configtxgen -profile FiveOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org3MSPanchors.tx -channelID mychannel -asOrg Org3MSP
+
+../bin/configtxgen -profile FiveOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org4MSPanchors.tx -channelID mychannel -asOrg Org4MSP
+
+../bin/configtxgen -profile FiveOrgsChannel -outputAnchorPeersUpdate ./channel-artifacts/Org5MSPanchors.tx -channelID mychannel -asOrg Org5MSP
+```
+
+
+이제 모든 호스트에 대한 docker-compose 파일을 준비하고 있습니다. 우리는 적절한 수정을 통해 First-Network에 있는 것을 주로 기반으로 합니다. 여기에서 8개의 파일을 만들고 있습니다.
+<ul>
+ <li> base/peer-base.yaml </li>
+ <li> base/docker-compose-peer.yaml </li>
+ <li> host1.yaml </li>
+ <li> host2.yaml </li>
+ <li> host3.yaml </li>
+ <li> host4.yaml </li>
+ <li> host5.yaml </li>
+ <li> .env </li>
+</ul>
+
+![image](https://user-images.githubusercontent.com/54825978/127280171-d6b06b55-920d-4712-bb69-5b271702faa4.png)
+
+
+### base/peer-base.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+  peer-base:
+    image: hyperledger/fabric-peer:$IMAGE_TAG
+    environment:
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      # the following setting starts chaincode containers on the same
+      # bridge network as the peers
+      # https://docs.docker.com/compose/networking/
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=first-network
+      - FABRIC_LOGGING_SPEC=INFO
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_GOSSIP_USELEADERELECTION=true
+      - CORE_PEER_GOSSIP_ORGLEADER=false
+      - CORE_PEER_PROFILE_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: peer node start
+
+  orderer-base:
+    image: hyperledger/fabric-orderer:$IMAGE_TAG
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      # enabled TLS
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+      - ORDERER_KAFKA_TOPIC_REPLICATIONFACTOR=1
+      - ORDERER_KAFKA_VERBOSE=true
+      - ORDERER_GENERAL_CLUSTER_CLIENTCERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+```
+### base/docker-compose-base.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+
+  orderer.example.com:
+    container_name: orderer.example.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    volumes:
+        - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+        - ../crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer.example.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.org1.example.com:
+    container_name: peer0.org1.example.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org1.example.com
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org1.example.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org1.example.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org1.example.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+
+  peer0.org2.example.com:
+    container_name: peer0.org2.example.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org2.example.com
+      - CORE_PEER_ADDRESS=peer0.org2.example.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org2.example.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org2.example.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org2.example.com:8051
+      - CORE_PEER_LOCALMSPID=Org2MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org2.example.com:/var/hyperledger/production
+    ports:
+      - 8051:8051
+
+  peer0.org3.example.com:
+    container_name: peer0.org3.example.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org3.example.com
+      - CORE_PEER_ADDRESS=peer0.org3.example.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org3.example.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org3.example.com:9051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org3.example.com:9051
+      - CORE_PEER_LOCALMSPID=Org3MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org3.example.com:/var/hyperledger/production
+    ports:
+      - 9051:9051
+
+  peer0.org4.example.com:
+    container_name: peer0.org4.example.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org4.example.com
+      - CORE_PEER_ADDRESS=peer0.org4.example.com:10051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:10051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org4.example.com:10052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:10052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org4.example.com:10051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org4.example.com:10051
+      - CORE_PEER_LOCALMSPID=Org4MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org4.example.com:/var/hyperledger/production
+    ports:
+      - 10051:10051
+
+  peer0.org5.example.com:
+    container_name: peer0.org5.example.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.org5.example.com
+      - CORE_PEER_ADDRESS=peer0.org5.example.com:11051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:11051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.org5.example.com:11052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:11052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.org5.example.com:11051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org5.example.com:11051
+      - CORE_PEER_LOCALMSPID=Org5MSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.org5.example.com:/var/hyperledger/production
+    ports:
+      - 11051:11051
+```
+### host1.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.example.com:
+  peer0.org1.example.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer.example.com:
+    extends:
+      file: base/docker-compose-base.yaml
+      service: orderer.example.com
+    container_name: orderer.example.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer.example.com:/var/hyperledger/production/orderer
+    ports:
+    - 7050:7050
+
+  peer0.org1.example.com:
+    container_name: peer0.org1.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org1.example.com
+    networks:
+      - byfn
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - SYS_CHANNEL=$SYS_CHANNEL
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.org1.example.com:7051
+      - CORE_PEER_LOCALMSPID=Org1MSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.example.com
+      - peer0.org1.example.com
+
+    networks:
+      - byfn
+```
+
+### host2.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer2.example.com:
+  peer0.org2.example.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer2.example.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer2.example.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer2.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer2.example.com:/var/hyperledger/production/orderer
+    ports:
+    - 7050:7050
+
+  peer0.org2.example.com:
+    container_name: peer0.org2.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org2.example.com
+    networks:
+      - byfn
+```
+
+### host3.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer3.example.com:
+  peer0.org3.example.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer3.example.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer3.example.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer3.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer3.example.com:/var/hyperledger/production/orderer
+    ports:
+    - 7050:7050
+
+  peer0.org3.example.com:
+    container_name: peer0.org3.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org3.example.com
+    networks:
+      - byfn
+```
+
+### host4.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer4.example.com:
+  peer0.org4.example.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer4.example.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer4.example.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer4.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer4.example.com:/var/hyperledger/production/orderer
+    ports:
+    - 7050:7050
+
+  peer0.org4.example.com:
+    container_name: peer0.org4.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org4.example.com
+    networks:
+      - byfn
+```
+
+### host5.yaml
+```
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer5.example.com:
+  peer0.org5.example.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer5.example.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    container_name: orderer5.example.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/example.com/orderers/orderer5.example.com/tls/:/var/hyperledger/orderer/tls
+        - orderer5.example.com:/var/hyperledger/production/orderer
+    ports:
+    - 7050:7050
+
+  peer0.org5.example.com:
+    container_name: peer0.org5.example.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.org5.example.com
+    networks:
+      - byfn
+```
+
+### .env
+```
+COMPOSE_PROJECT_NAME=net
+IMAGE_TAG=latest
+SYS_CHANNEL=byfn-sys-channel
+```
+
+
+이제 host1에 모든 것이 있습니다. 이 디렉토리를 다른 모든 호스트에 복사합니다. EC2에서 파일을 복사할 수 없으므로 로컬 호스트를 "브리지"로 사용하겠습니다.
+```
+# < HOST1에서 >
+cd ../fabric-samples
+tar cf raft-5node-swarm.tar raft-5node-swarm/
+
+
+
+
+-----------------------
+# < HOST1 >종료 후 < key가 있는 내 컴퓨터 >에서
+1. 내 local로 HOST1 서버에 있는 압축파일 가져오기
+scp -i <key> ubuntu@<Host 1 IP>:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples/raft-5node-swarm.tar .
+
+2. 각 호스트로 압축파일 내보내기
+scp -i <key> raft-5node-swarm.tar ubuntu@<Host 2, 3, 4 and 5 IP>:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples
+
+ex)
+1. key가 있는 내 컴퓨터로 HOST1 서버에 있는 압축파일 가져오기
+scp -i blockchain_key.pem ubuntu@54.180.58.25:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples/raft-5node-swarm.tar .
+
+2. 각 호스트로 압축파일 내보내기 host2~5 반복
+scp -i blockchain_key.pem raft-5node-swarm.tar ubuntu@13.209.56.166:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples
+scp -i blockchain_key.pem raft-5node-swarm.tar ubuntu@<host3 IP>:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples
+scp -i blockchain_key.pem raft-5node-swarm.tar ubuntu@<host4 IP>:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples
+scp -i blockchain_key.pem raft-5node-swarm.tar ubuntu@<host5 IP>:/home/ubuntu/go/src/github.com/hyperledger/fabric-samples
+----------------------
+
+
+
+
+# < HOST 2, 3, 4 and 5 > 에서 tar 압축풀기
+cd /fabric-samples
+tar xf raft-5node-swarm.tar
+cd raft-5node-swarm
+```
+
+![image](https://user-images.githubusercontent.com/54825978/127282548-b655fc9d-b88e-434f-a158-293ca0fe45d4.png)
+
+이제 모든 노드에 동일한 암호화 자료와 필수 docker-compose 파일이 있습니다. 모든 컨테이너를 가져올 준비가 되었습니다.
+
+## 4단계 : 각 node에서 컨테이너 불러오기
+docker-compose를 사용하여 모든 호스트를 불러옵니다.
+```
+# host 1, 2, 3, 4, 5에서 해당 yaml 파일을 불러옵니다.
+ docker-compose -f host1~5.yaml up -d
+```
+
+![image](https://user-images.githubusercontent.com/54825978/127289333-26b830fa-28b8-4ccd-8411-ebb0bbf2da2e.png)
+오류 발생 시
+
+### ERROR: manifest for hyperledger/fabric-orderer:latest not found
+```
+# fabric-tools 최신 버전으로 pull
+sudo docker pull hyperledger/fabric-orderer:x86_64-1.1.0-rc1
+# tag 수정
+sudo docker tag hyperledger/fabric-orderer:x86_64-1.1.0-rc1 hyperledger/fabric-tools:latest
+```
+### ERROR: manifest for hyperledger/fabric-tools:latest not found
+```
+# fabric-tools 최신 버전으로 pull
+sudo docker pull hyperledger/fabric-tools:x86_64-1.1.0-rc1
+# tag 수정
+sudo docker tag hyperledger/fabric-tools:x86_64-1.1.0-rc1 hyperledger/fabric-tools:latest
+```
+### ERROR: manifest for hyperledger/fabric-peer:latest not found
+```
+# fabric-peer 최신 버전으로 pull
+sudo docker pull hyperledger/fabric-peer:x86_64-1.1.0-rc1
+# tag 수정
+sudo docker tag hyperledger/fabric-peer:x86_64-1.1.0-rc1 hyperledger/fabric-peer:latest
+```
+/base/docker-compose-base의 orderer에 다음 명령어 추가
+![image](https://user-images.githubusercontent.com/54825978/127632612-ee941ac0-50d0-48e4-8c20-adcd9aaf2142.png)
+
+</br>
+host1~5에 peer 1개씩, orderer 1개씩</br>
+host1에 모든 node에 명령을 위한 cli.
+
+![image](https://user-images.githubusercontent.com/54825978/127805050-f1f4cfeb-448c-4c6f-a5aa-86a594040c0e.png)
+
+
+
+## 5단계 : 채널을 만들고 모든 피어 노드 결합
+호스트 1에는 CLI만 있으므로 모든 명령은 호스트 1 터미널에서 실행됩니다. </br></br>
+mychannel 에 대한 채널 생성 블록을 생성합니다 .
+```
+docker exec cli peer channel create -o orderer.example.com:7050 -c mychannel -f ./channel-artifacts/channel.tx --tls --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem
+```
+![image](https://user-images.githubusercontent.com/54825978/128439642-1b7ff1d1-6c5c-4d84-bd63-f57022c19196.png)
+
+
+mychannel에 peer0.org1 가입
+```
+docker exec cli peer channel join -b mychannel.block
+```
+![image](https://user-images.githubusercontent.com/54825978/128439714-b97fcc38-9777-4dc8-9dcc-27c08f55e13b.png)
+
+
+mychannel에 peer0.org2 가입
+```
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp -e CORE_PEER_ADDRESS=peer0.org2.example.com:8051 -e CORE_PEER_LOCALMSPID="Org2MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt cli peer channel join -b mychannel.block
+```
+mychannel에 peer0.org3 가입
+```
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp -e CORE_PEER_ADDRESS=peer0.org3.example.com:9051 -e CORE_PEER_LOCALMSPID="Org3MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt cli peer channel join -b mychannel.block
+```
+mychannel에 peer0.org4 가입
+```
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/users/Admin@org4.example.com/msp -e CORE_PEER_ADDRESS=peer0.org4.example.com:10051 -e CORE_PEER_LOCALMSPID="Org4MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls/ca.crt cli peer channel join -b mychannel.block
+```
+mychannel에 peer0.org5 가입
+```
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/users/Admin@org5.example.com/msp -e CORE_PEER_ADDRESS=peer0.org5.example.com:11051 -e CORE_PEER_LOCALMSPID="Org5MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/tls/ca.crt cli peer channel join -b mychannel.block
+```
+
+
+
+
+## 6단계 : Fabcar 체인코드 설치 및 인스턴스화
+HOST1에서 작업 </br>
+
+모든 피어 노드에 Fabcar 체인코드 설치
+```
+# peer0.org1
+docker exec cli peer chaincode install -n mycc -v 1.0 -p github.com/chaincode/fabcar/go/
+
+
+# peer0.org2
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp -e CORE_PEER_ADDRESS=peer0.org2.example.com:8051 -e CORE_PEER_LOCALMSPID="Org2MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt cli peer chaincode install -n mycc -v 1.0 -p github.com/chaincode/fabcar/go/
+
+
+# peer0.org3
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp -e CORE_PEER_ADDRESS=peer0.org3.example.com:9051 -e CORE_PEER_LOCALMSPID="Org3MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt cli peer chaincode install -n mycc -v 1.0 -p github.com/chaincode/fabcar/go/
+
+
+# peer0.org4
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/users/Admin@org4.example.com/msp -e CORE_PEER_ADDRESS=peer0.org4.example.com:10051 -e CORE_PEER_LOCALMSPID="Org4MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls/ca.crt cli peer chaincode install -n mycc -v 1.0 -p github.com/chaincode/fabcar/go/
+
+
+# peer0.org5
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/users/Admin@org5.example.com/msp -e CORE_PEER_ADDRESS=peer0.org5.example.com:11051 -e CORE_PEER_LOCALMSPID="Org5MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/tls/ca.crt cli peer chaincode install -n mycc -v 1.0 -p github.com/chaincode/fabcar/go/
+```
+
+mychannel 에 Fabcar 체인코드를 인스턴스화합니다.
+```
+docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n mycc -v 1.0 -c '{"Args":[]}' -P "OR ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer','Org4MSP.peer','Org5MSP.peer')"
+```
+
+## 7단계 : 체인코드 호출 및 쿼리
+```
+docker exec cli peer chaincode invoke -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n mycc --peerAddresses peer0.org1.example.com:7051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt --peerAddresses peer0.org2.example.com:8051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt --peerAddresses peer0.org3.example.com:9051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt --peerAddresses peer0.org4.example.com:10051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls/ca.crt --peerAddresses peer0.org5.example.com:11051 --tlsRootCertFiles /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/tls/ca.crt -c '{"Args":["initLedger"]}'
+```
+
+(선택사항) 그 후 4개의 피어 노드에서 자동차 레코드를 쿼리할 수 있습니다. 이것은 패브릭 네트워크가 잘 작동하고 있음을 보여줍니다.
+```
+# from peer0.org1
+docker exec cli peer chaincode query -n mycc -C mychannel -c '{"Args":["queryCar","CAR0"]}'
+
+# from peer0.org2
+docker exec -e CORE_PEER_ADDRESS=peer0.org2.example.com:8051 -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt cli peer chaincode query -n mycc -C mychannel -c '{"Args":["queryCar","CAR0"]}'
+
+# from peer0.org3
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp -e CORE_PEER_ADDRESS=peer0.org3.example.com:9051 -e CORE_PEER_LOCALMSPID="Org3MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt cli peer chaincode query -n mycc -C mychannel -c '{"Args":["queryCar","CAR0"]}'
+
+# from peer0.org4
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/users/Admin@org4.example.com/msp -e CORE_PEER_ADDRESS=peer0.org4.example.com:10051 -e CORE_PEER_LOCALMSPID="Org4MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls/ca.crt cli peer chaincode query -n mycc -C mychannel -c '{"Args":["queryCar","CAR0"]}'
+
+# from peer0.org5
+docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/users/Admin@org5.example.com/msp -e CORE_PEER_ADDRESS=peer0.org5.example.com:11051 -e CORE_PEER_LOCALMSPID="Org5MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/peers/peer0.org4.example.com/tls/ca.crt cli peer chaincode query -n mycc -C mychannel -c '{"Args":["queryCar","CAR0"]}'
+```
+
+## 8단계 : 정리
+```
+# 각 호스트
+ docker-compose -f host n .yaml down -v
+```
+
+
