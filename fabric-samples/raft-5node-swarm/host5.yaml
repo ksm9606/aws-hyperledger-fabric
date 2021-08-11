@@ -16,6 +16,24 @@ networks:
 
 services:
 
+  ca.org5.example.com:
+    image: hyperledger/fabric-ca
+    environment:
+      - FABRIC_CA_SERVER_TLS_ENABLED=true
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.org5.example.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.org5.example.com-cert.pem
+      # - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ef5cb5b9ef770fb136dd2084d90b1be591b3cd70e90b885a8b1f8ec618b914e6_sk
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BYFN_CA5_PRIVATE_KEY}
+    ports:
+      - "11054:11054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ./crypto-config/peerOrganizations/org5.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    container_name: ca.org5.example.com
+    networks:
+      - byfn
+
   orderer5.example.com:
     extends:
       file: base/peer-base.yaml
