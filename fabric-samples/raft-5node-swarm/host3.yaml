@@ -51,7 +51,7 @@ services:
     ports:
     - 7050:7050
 
-couchdb3:
+  couchdb3:
     container_name: couchdb3
     image: hyperledger/fabric-couchdb
     # Populate the COUCHDB_USER and COUCHDB_PASSWORD to set an admin user and password
