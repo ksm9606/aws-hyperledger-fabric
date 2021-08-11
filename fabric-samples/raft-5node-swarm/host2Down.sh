@@ -1,5 +1,5 @@
 docker rm -f $(docker ps -aq)
-docker-compose -f host1.yaml down -v
+docker-compose -f host2.yaml down -v
 cd ../first-network/
 ./byfn.sh down
 
