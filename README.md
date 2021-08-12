@@ -1847,22 +1847,22 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 ![image](https://user-images.githubusercontent.com/54825978/129148630-e3b1285c-d6b7-4f56-8cb8-3317d23d3c9b.png)
 
 ## 2단계 : Nginx
-설치
+## 설치
 ```
 apt-get update && apt-get install nginx
 ```
-Nginx 디렉터리 이동
+## Nginx 디렉터리 이동
 ```
 /etc/nginx/sites-available
 ```
-Nginx 디렉터리 의미
+### Nginx 디렉터리 의미
 - /etc/nginx: 해당 디렉터리는 Nginx를 설정하는 디렉터리입니다.모든 설정을 이 디렉터리 안에서 합니다.
 - /etc/nginx/nginx.conf: Ngnix의 메인 설정 파일로 Nginx의 글로벌 설정을 수정 할 수 있습니다.
 - /etc/nginx/sites-available: 해당 디렉터리에서 프록시 설정 및 어떻게 요청을 처리해야 할지에 대해 설정 할 수 있습니다.
 - /etc/nginx/sites-enabled: 해당 디렉터리는 sites-available 디렉터리에서 연결된 파일들이 존재하는 곳 입니다.이 곳에 디렉터리와 연결이 되어 있어야 nginx가 프록시 설정을 적용합니다.
 - /etc/nginx/snippets: sites-available 디렉터리에 있는 파일들에 공통적으로 포함될 수 있는 설정들을 정의할 수 있는 디렉터리 입니다.
 
-node-server 수정
+## node-server 수정
 ```
 vi node-server
 ```
@@ -1878,12 +1878,12 @@ server {
 클라이언트가 54.180.102.122:80/ 주소로 요청하면 현재 서버에서 실행되고 있는 http://127.0.0.1:4200 으로 클라이언트의 요청을 대신 보내준다는 의미
 ```
 
-node-server(파일명) 파일 연결
+## node-server(파일명) 파일 연결
 ```
 ln -s /etc/nginx/sites-available/node-server /etc/nginx/sites-enabled/
 ```
 
-재시작
+## 재시작
 ```
 service nginx restart
 ```
