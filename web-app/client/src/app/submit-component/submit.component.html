@@ -1,0 +1,7 @@
+
+<div class="tabs">
+  <button [ngClass]="{'activeTab': showCreateCar}" (click)="toggle('create')">계약서 작성</button>
+</div>
+<div>
+  <app-create-car-form *ngIf="showCreateCar"></app-create-car-form>
+</div>

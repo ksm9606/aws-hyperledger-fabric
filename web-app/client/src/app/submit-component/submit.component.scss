@@ -1,0 +1,24 @@
+@import '../../colors.scss';
+
+:host {
+  // height: 100%;
+  background-color: $background;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
+}
+
+.tabs {
+  button {
+    border: none;
+    font-size: 1em;
+    color: $primary-text;
+    &.activeTab {
+      background-color: $active-form-background;
+    }
+    &:focus {
+      outline: none;
+    }
+  }
+}

@@ -1,0 +1,79 @@
+@import '../../colors.scss';
+
+:host {
+  height: 100%;
+  width: 100%;
+  padding: 1em;
+  display: flex;
+  flex-direction: column;
+  background: $active-form-background;
+  color: $primary-text;
+}
+header {
+  display: flex;
+  background-color: $header-background;
+  padding-left: 1em;
+
+  h1 {
+    color: $header-text;
+    font-size: 1.8em;
+  }
+}
+
+div {
+      button {
+      width: 204px;
+      margin: 50px auto;
+      height: 30px;
+      font-size: 1em;
+      border: none;
+      background-color: $button-color;
+      color: $button-text;
+      &:disabled {
+        background-color: $disabled-button;
+        cursor: not-allowed;
+      }
+    }
+    
+  }
+
+
+table {
+  margin-top: 50px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  text-align: left;
+
+  thead {
+    display: flex;
+    flex-direction: row;
+    th {
+      flex: 1;
+    }
+  }
+
+  tbody {
+    flex-direction: column;
+    overflow-y: overlay;
+    flex: 1;
+    font-size: 14px;
+    tr {
+      display: flex;
+      flex: 1;
+      flex-direction: row;
+      td {
+        flex: 1;
+      }
+    }
+
+  }
+}
+
+
+.sign {
+  width: 50%;
+  margin-top: 50px;
+  display: flex;
+  justify-content: space-between;
+}

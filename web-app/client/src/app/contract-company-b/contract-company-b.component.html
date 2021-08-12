@@ -1,0 +1,53 @@
+<header>
+  <h1>스마트 계약 (을)</h1>
+</header>
+
+<div>
+  <form #f="ngForm" (ngSubmit)="onSubmit(f.value)">
+    <table>
+      <thead>
+        <th>계약서 번호</th>
+        <th>계약서명</th>
+        <th>계약서 내용</th>
+        <th>소속회사(갑)</th>
+        <th>소속회사(을)</th>
+        <th>계약일</th>
+        <th>계약 기간</th>
+        <th>계약 상태</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td>{{cars.key}}</td>
+          <td>{{cars.contract_name}}</td>
+          <td>{{cars.contract_contents}}</td>
+          <td>{{cars.contract_companyA}}</td>
+          <td>{{cars.contract_companyB}}</td>
+          <td>{{cars.contract_date}}</td>
+          <td>{{cars.contract_period}}</td>
+          <td>{{cars.state}}</td>
+        </tr>
+      </tbody>
+
+    </table>
+
+
+  
+    <div class="sign">
+      <div>
+        <label for="contract_signB">(을)서명</label>
+        <input type="text" class="form-control" name="contract_signB" required ngModel>
+      </div>
+    </div>
+      
+      <button [disabled]="!f.valid" type="submit" class="btn btn-success">전송</button>
+    
+    
+  </form>
+</div>
+        
+        <!-- <td>{{cars.contract_contents}}</td>
+        <td>{{cars.contract_companyA}}</td>
+        <td>{{cars.contract_companyB}}</td>
+        <td>{{cars.contract_date}}</td>
+        <td>{{cars.contract_period}}</td>
+        <td>{{cars.state}}</td> --> 
