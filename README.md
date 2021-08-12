@@ -1853,7 +1853,7 @@ apt-get update && apt-get install nginx
 ```
 ## Nginx 디렉터리 이동
 ```
-/etc/nginx/sites-available
+cd /etc/nginx/sites-available
 ```
 ### Nginx 디렉터리 의미
 - /etc/nginx: 해당 디렉터리는 Nginx를 설정하는 디렉터리입니다.모든 설정을 이 디렉터리 안에서 합니다.
