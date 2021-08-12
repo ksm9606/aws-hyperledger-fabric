@@ -1843,4 +1843,6 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 
 
 # 6. ec2 웹 서버
+![image](https://user-images.githubusercontent.com/54825978/129148630-e3b1285c-d6b7-4f56-8cb8-3317d23d3c9b.png)
+
 https://velog.io/@jeff0720/2018-11-18-2111-%EC%9E%91%EC%84%B1%EB%90%A8-iojomvsf0n
