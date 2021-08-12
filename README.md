@@ -1843,6 +1843,7 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 
 
 # 6. ec2 웹 서버
+proxy 수정
 ## 1단계 : connection.yaml 수정
 ![image](https://user-images.githubusercontent.com/54825978/129148630-e3b1285c-d6b7-4f56-8cb8-3317d23d3c9b.png)
 
