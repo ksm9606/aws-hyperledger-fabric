@@ -2,11 +2,11 @@
 
 echo 'printing keystore for Org1'
 
-ORG_1_KEYSTORE=$(ls ../../first-network/crypto-config/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/keystore/)
-ORG_2_KEYSTORE=$(ls ../../first-network/crypto-config/peerOrganizations/org2.example.com/users/Admin\@org2.example.com/msp/keystore/)
-ORG_3_KEYSTORE=$(ls ../../first-network/crypto-config/peerOrganizations/org3.example.com/users/Admin\@org3.example.com/msp/keystore/)
-ORG_4_KEYSTORE=$(ls ../../first-network/crypto-config/peerOrganizations/org4.example.com/users/Admin\@org4.example.com/msp/keystore/)
-ORG_5_KEYSTORE=$(ls ../../first-network/crypto-config/peerOrganizations/org5.example.com/users/Admin\@org5.example.com/msp/keystore/)
+ORG_1_KEYSTORE=$(ls ../../fabric-samples/raft-5node-swarm/crypto-config/peerOrganizations/org1.example.com/users/Admin\@org1.example.com/msp/keystore/)
+ORG_2_KEYSTORE=$(ls ../../fabric-samples/raft-5node-swarm/crypto-config/peerOrganizations/org2.example.com/users/Admin\@org2.example.com/msp/keystore/)
+ORG_3_KEYSTORE=$(ls ../../fabric-samples/raft-5node-swarm/crypto-config/peerOrganizations/org3.example.com/users/Admin\@org3.example.com/msp/keystore/)
+ORG_4_KEYSTORE=$(ls ../../fabric-samples/raft-5node-swarm/crypto-config/peerOrganizations/org4.example.com/users/Admin\@org4.example.com/msp/keystore/)
+ORG_5_KEYSTORE=$(ls ../../fabric-samples/raft-5node-swarm/crypto-config/peerOrganizations/org5.example.com/users/Admin\@org5.example.com/msp/keystore/)
 
 ORG_1_PATH_TO_KEYSTORE="Admin@org1.example.com/msp/keystore/"
 ORG_2_PATH_TO_KEYSTORE="Admin@org2.example.com/msp/keystore/"
