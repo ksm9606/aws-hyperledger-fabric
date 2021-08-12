@@ -2,7 +2,7 @@
 
     "/": {
  
-       "target": "http://localhost:8081",
+       "target": "http://13.209.56.166:8081",
  
        "secure": false,
  
