@@ -1659,7 +1659,7 @@ SYS_CHANNEL=byfn-sys-channel
 ### host1~5 shellScript
 ```
 export BYFN_CA1_PRIVATE_KEY=$(cd crypto-config/peerOrganizations/org1.example.com/ca && ls *_sk)
-docker-compose -f host1.yaml up -d
+docker-compose -f host1~5.yaml up -d
 ```
 
 
