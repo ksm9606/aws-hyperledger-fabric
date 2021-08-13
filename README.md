@@ -1865,14 +1865,21 @@ cd /etc/nginx/sites-available
 
 ## node-server 수정
 ```
-vi node-server
+sudo vi node-server
 ```
 ```
 server {
         listen 80;
-        server_name 54.180.102.112; // 원하는 주소
+        server_name 13.209.56.166;
         location / {
                 proxy_pass http://127.0.0.1:4200;
+                # Allow the use of websockets
+                proxy_http_version 1.1;
+                proxy_set_header   X-Forwarded-For $remote_addr;
+                proxy_set_header   Host $http_host;
+                proxy_set_header   Upgrade $http_upgrade;
+                proxy_set_header   Connection "upgrade";
+                proxy_cache_bypass $http_upgrade;
         }
 }
 
@@ -1886,7 +1893,7 @@ ln -s /etc/nginx/sites-available/node-server /etc/nginx/sites-enabled/
 
 ## 재시작
 ```
-service nginx restart
+sudo systemctl restart nginx
 ```
 
 
