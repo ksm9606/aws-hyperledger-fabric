@@ -1337,7 +1337,7 @@ services:
       # - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ef5cb5b9ef770fb136dd2084d90b1be591b3cd70e90b885a8b1f8ec618b914e6_sk
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BYFN_CA2_PRIVATE_KEY}
     ports:
-      - "8054:8054"
+      - "8054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
       - ./crypto-config/peerOrganizations/org2.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
@@ -1423,7 +1423,7 @@ services:
       # - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ef5cb5b9ef770fb136dd2084d90b1be591b3cd70e90b885a8b1f8ec618b914e6_sk
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BYFN_CA3_PRIVATE_KEY}
     ports:
-      - "9054:9054"
+      - "9054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
       - ./crypto-config/peerOrganizations/org3.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
@@ -1508,7 +1508,7 @@ services:
       # - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ef5cb5b9ef770fb136dd2084d90b1be591b3cd70e90b885a8b1f8ec618b914e6_sk
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BYFN_CA4_PRIVATE_KEY}
     ports:
-      - "10054:10054"
+      - "10054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
       - ./crypto-config/peerOrganizations/org4.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
@@ -1594,7 +1594,7 @@ services:
       # - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/ef5cb5b9ef770fb136dd2084d90b1be591b3cd70e90b885a8b1f8ec618b914e6_sk
       - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/${BYFN_CA5_PRIVATE_KEY}
     ports:
-      - "11054:11054"
+      - "11054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
       - ./crypto-config/peerOrganizations/org5.example.com/ca/:/etc/hyperledger/fabric-ca-server-config
@@ -1809,7 +1809,7 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 
 mychannel 에 Fabcar 체인코드를 인스턴스화합니다.
 ```
-docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n fabcar -v 1.0 -c '{"Args":[]}' -P "AND ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer','Org4MSP.peer','Org5MSP.peer')"
+docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n fabcar -v 1.0 -c '{"Args":[]}' -P "OR ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer','Org4MSP.peer','Org5MSP.peer')"
 ```
 
 ## 7단계 : 체인코드 호출 및 쿼리
@@ -1898,3 +1898,13 @@ sudo systemctl restart nginx
 
 
 https://velog.io/@jeff0720/2018-11-18-2111-%EC%9E%91%EC%84%B1%EB%90%A8-iojomvsf0n
+
+
+
+# 7. 클라이언트 proxy
+## Client proxy 	(Org1~5 모두 수정)
+자기 자신을 가르킬 것 
+ex) 		"target": "http://13.124.175.72:8081"
+
+## api.service.ts (Org1~5 모두 수정)
+client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
