@@ -1924,7 +1924,7 @@ pm2 start npm --name "Server" -- start
 
 
 # 9. git personal access token 
-Linux 기반 OS용 ⤴
+## Linux 기반 OS용 ⤴
 Linux의 경우 사용자 이름과 이메일 주소로 로컬 GIT 클라이언트를 구성해야 합니다.
 
 $ git config --global user.name "your_github_username"
