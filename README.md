@@ -1871,7 +1871,7 @@ sudo vi node-server
 ```
 server {
         listen 80;
-        server_name 13.209.56.166;
+        server_name 13.209.56.166;  // Org1~5 각각 자신의 주소로
         location / {
                 proxy_pass http://127.0.0.1:4200;
                 # Allow the use of websockets
@@ -1904,9 +1904,9 @@ sudo systemctl restart nginx
 
 # 7. 클라이언트
 ## Proxy 수정
-### Client proxy 	(Org1~5 모두 수정)
+### Client proxy 	(Org1~5 각각 자신의 주소로 수정)
 자기 자신을 가르킬 것 
 ex) 		"target": "http://13.124.175.72:8081"
 
-### api.service.ts (Org1~5 모두 수정)
+### api.service.ts (Org1~5 각각 자신의 주소로 수정)
 client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
