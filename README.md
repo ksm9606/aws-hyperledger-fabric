@@ -1843,7 +1843,7 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 
 
 # 6. ec2 웹 서버
-proxy 수정
+
 ## 1단계 : connection.yaml 수정
 ![image](https://user-images.githubusercontent.com/54825978/129148630-e3b1285c-d6b7-4f56-8cb8-3317d23d3c9b.png)
 
@@ -1901,10 +1901,11 @@ https://velog.io/@jeff0720/2018-11-18-2111-%EC%9E%91%EC%84%B1%EB%90%A8-iojomvsf0
 
 
 
-# 7. 클라이언트 proxy
-## Client proxy 	(Org1~5 모두 수정)
+# 7. 클라이언트
+## Proxy 수정
+### Client proxy 	(Org1~5 모두 수정)
 자기 자신을 가르킬 것 
 ex) 		"target": "http://13.124.175.72:8081"
 
-## api.service.ts (Org1~5 모두 수정)
+### api.service.ts (Org1~5 모두 수정)
 client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
