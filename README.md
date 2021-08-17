@@ -1920,6 +1920,9 @@ pm2 start npm --name "Client" -- start
 
 # 서버 실행
 pm2 start npm --name "Server" -- start
+
+# log 확인
+pm2 monit
 ```
 
 
