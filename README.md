@@ -1809,7 +1809,7 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 
 mychannel 에 Fabcar 체인코드를 인스턴스화합니다.
 ```
-docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n fabcar -v 1.0 -c '{"Args":[]}' -P "OR ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer','Org4MSP.peer','Org5MSP.peer')"
+docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n fabcar -v 1.0 -c '{"Args":[]}' -P "OutOf (3, 'Org1MSP.peer', 'Org2MSP.peer', 'Org3MSP.peer', 'Org4MSP.peer', 'Org5MSP.peer')"
 ```
 
 ## 7단계 : 체인코드 호출 및 쿼리
@@ -1910,3 +1910,39 @@ ex) 		"target": "http://13.124.175.72:8081"
 
 ### api.service.ts (Org1~5 각각 자신의 주소로 수정)
 client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
+
+
+
+# 8. pm2 클라이언트 / 서버 실행
+```
+# 클라이언트 실행
+pm2 start npm --name "Client" -- start
+
+# 서버 실행
+pm2 start npm --name "Server" -- start
+```
+
+
+# 9. git personal access token 
+Linux 기반 OS용 ⤴
+Linux의 경우 사용자 이름과 이메일 주소로 로컬 GIT 클라이언트를 구성해야 합니다.
+
+$ git config --global user.name "your_github_username"
+$ git config --global user.email "your_github_email"
+$ git config -l
+GIT가 구성되면 이를 사용하여 GitHub에 액세스할 수 있습니다. 예 :
+
+$ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
+> Cloning into `Spoon-Knife`...
+$ Username for 'https://github.com' : username
+$ Password for 'https://github.com' : give your personal access token here
+이제 토큰을 기억하기 위해 컴퓨터에 지정된 레코드를 캐시합니다.
+
+$ git config --global credential.helper cache
+필요한 경우 언제든지 다음을 통해 캐시 레코드를 삭제할 수 있습니다.
+
+$ git config --global --unset credential.helper
+$ git config --system --unset credential.helper
+이제 로 당겨 -v확인하십시오.
+
+$ git pull -v
