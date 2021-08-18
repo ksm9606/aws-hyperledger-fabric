@@ -1737,6 +1737,9 @@ sudo docker tag hyperledger/fabric-peer:x86_64-1.1.0-rc1 hyperledger/fabric-peer
 ```
 /base/docker-compose-base의 orderer에 다음 명령어 추가
 ![image](https://user-images.githubusercontent.com/54825978/127632612-ee941ac0-50d0-48e4-8c20-adcd9aaf2142.png)
+```
+image: hyperledger/fabric-orderer:latest
+```
 
 </br>
 host1~5에 peer 1개씩, orderer 1개씩</br>
