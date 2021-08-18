@@ -1851,7 +1851,7 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 https://velog.io/@jeff0720/2018-11-18-2111-%EC%9E%91%EC%84%B1%EB%90%A8-iojomvsf0n
 ## 설치
 ```
-apt-get update && apt-get install nginx
+sudo apt-get update && apt-get install nginx
 ```
 ## Nginx 디렉터리 이동
 ```
