@@ -1890,7 +1890,7 @@ server {
 
 ## node-server(파일명) 파일 연결
 ```
-ln -s /etc/nginx/sites-available/node-server /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/node-server /etc/nginx/sites-enabled/
 ```
 
 ## 재시작
