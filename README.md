@@ -1916,6 +1916,9 @@ client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
 
 # 8. pm2 클라이언트 / 서버 실행
 ```
+# pm2 설치
+npm install -g pm2@latest
+
 # 클라이언트 실행
 pm2 start npm --name "Client" -- start
 
@@ -1924,6 +1927,9 @@ pm2 start npm --name "Server" -- start
 
 # log 확인
 pm2 monit
+
+# pm2 kill
+pm2 kill
 ```
 
 
