@@ -1939,6 +1939,7 @@ pm2 kill
 
 # 9. hyperledger explorer
 공식문서 https://github.com/hyperledger/blockchain-explorer
+
 ## 1단계 : 도커 이미지 다운로드
 https://hub.docker.com/r/hyperledger/explorer/    </br>
 https://hub.docker.com/r/hyperledger/explorer-db
@@ -1948,9 +1949,16 @@ docker pull hyperledger/explorer
 ```
 docker pull hyperledger/explorer-db
 ```
-## 2단계 : Hyperledger Fabric 네트워크 실행
 
-## 3단계 : 구성
+## 2단계 : PostgreSQL 설치
+```
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+```
+
+## 3단계 : Hyperledger Fabric 네트워크 실행
+
+## 4단계 : 구성
 $ raft-5node-swarm/docker-compose.yaml </br>
 $ raft-5node-swarm/config.json </br>
 $ raft-5node-swarm/connection-profile/first-network.json </br>
@@ -2082,12 +2090,12 @@ services:
 }
 ```
 
-## 4단계 : explorer 시작
+## 5단계 : explorer 시작
 ```
 docker-compose -f docker-compose.yaml up -d
 ```
 
-## 5단계 : explorer 진입
+## 6단계 : explorer 진입
 ```
 13.209.56.166:8080
 ```
