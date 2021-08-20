@@ -1936,7 +1936,165 @@ pm2 kill
 ```
 
 
-# 9. git personal access token 
+
+# 9. hyperledger explorer
+https://github.com/hyperledger/blockchain-explorer
+## 1단계 : 도커 이미지 다운로드
+https://hub.docker.com/r/hyperledger/explorer/
+https://hub.docker.com/r/hyperledger/explorer-db
+```
+docker pull hyperledger/explorer
+```
+```
+docker pull hyperledger/explorer-db
+```
+## 2단계 : Hyperledger Fabric 네트워크 실행
+
+## 3단계 : 구성
+$ raft-5node-swarm/docker-compose.yaml </br>
+$ raft-5node-swarm/config.json </br>
+$ raft-5node-swarm/connection-profile/first-network.json </br>
+
+### docker-compose.yaml
+```
+# SPDX-License-Identifier: Apache-2.0
+version: '2.1'
+
+volumes:
+  pgdata:
+  walletstore:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  explorerdb.mynetwork.com:
+    image: hyperledger/explorer-db:latest
+    container_name: explorerdb.mynetwork.com
+    hostname: explorerdb.mynetwork.com
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    healthcheck:
+      test: "pg_isready -h localhost -p 5432 -q -U postgres"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - byfn
+
+  explorer.mynetwork.com:
+    image: hyperledger/explorer:latest
+    container_name: explorer.mynetwork.com
+    hostname: explorer.mynetwork.com
+    environment:
+      - DATABASE_HOST=explorerdb.mynetwork.com
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - LOG_LEVEL_APP=debug
+      - LOG_LEVEL_DB=debug
+      - LOG_LEVEL_CONSOLE=info
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ./config.json:/opt/explorer/app/platform/fabric/config.json
+      - ./connection-profile:/opt/explorer/app/platform/fabric/connection-profile
+      - ./crypto-config:/tmp/crypto
+      - walletstore:/opt/explorer/wallet
+    ports:
+      - 8080:8080
+    depends_on:
+      explorerdb.mynetwork.com:
+        condition: service_healthy
+    networks:
+      - byfn
+```
+
+### config.json
+```
+{
+        "network-configs": {
+                "first-network": {
+                        "name": "first-network",
+                        "profile": "./connection-profile/first-network.json"
+                }
+        },
+        "license": "Apache-2.0"
+}
+```
+
+### first-network.json
+```
+{
+        "name": "first-network",
+        "version": "1.0.0",
+        "client": {
+                "tlsEnable": true,
+                "adminCredential": {
+                        "id": "exploreradmin",
+                        "password": "exploreradminpw"
+                },
+                "enableAuthentication": true,
+                "organization": "Org1MSP",
+                "connection": {
+                        "timeout": {
+                                "peer": {
+                                        "endorser": "300"
+                                },
+                                "orderer": "300"
+                        }
+                }
+        },
+        "channels": {
+                "mychannel": {
+                        "peers": {
+                                "peer0.org1.example.com": {}
+                        }
+                }
+        },
+        "organizations": {
+                "Org1MSP": {
+                        "mspid": "Org1MSP",
+                        "adminPrivateKey": {
+                                "path": "/tmp/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/3217e77a01fda41ef46ce3945b55cdc99e748a00de1f7d132ef76f2fc79b6c2a_sk"
+                        },
+                        "peers": ["peer0.org1.example.com"],
+                        "signedCert": {
+                                "path": "/tmp/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem"
+                        }
+                }
+        },
+        "peers": {
+                "peer0.org1.example.com": {
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+                        },
+                        "url": "grpcs://peer0.org1.example.com:7051"
+                }
+        }
+}
+```
+
+## 4단계 : explorer 시작
+```
+docker-compose -f docker-compose.yaml up -d
+```
+
+## 5단계 : explorer 진입
+```
+172.31.14.116:8080
+```
+
+
+
+# 10. git personal access token 
 ## Linux 기반 OS용 ⤴
 Linux의 경우 사용자 이름과 이메일 주소로 로컬 GIT 클라이언트를 구성해야 합니다.
 
@@ -1959,3 +2117,6 @@ $ git config --system --unset credential.helper
 이제 로 당겨 -v확인하십시오.
 
 $ git pull -v
+
+
+
