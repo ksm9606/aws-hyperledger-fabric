@@ -2094,6 +2094,13 @@ services:
 ```
 docker-compose -f docker-compose.yaml up -d
 ```
+explorer.mynetwork.com Exited(1) 되는 문제
+![image](https://user-images.githubusercontent.com/54825978/130168989-1e8c56c4-81f7-43bf-9e40-4960449471d7.png)
+```
+docker stop explorerdb.mynetwork.com
+docker rm explorerdb.mynetwork.com
+```
+
 
 ## 6단계 : explorer 진입
 ```
