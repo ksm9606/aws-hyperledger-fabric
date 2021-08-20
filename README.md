@@ -2038,7 +2038,7 @@ services:
 }
 ```
 
-### first-network.json
+### connection-profile/first-network.json
 ```
 {
         "name": "first-network",
