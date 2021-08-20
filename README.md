@@ -2089,7 +2089,7 @@ docker-compose -f docker-compose.yaml up -d
 
 ## 5단계 : explorer 진입
 ```
-172.31.14.116:8080
+13.209.56.166:8080
 ```
 
 
