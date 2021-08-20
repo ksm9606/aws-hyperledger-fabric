@@ -1938,7 +1938,7 @@ pm2 kill
 
 
 # 9. hyperledger explorer
-https://github.com/hyperledger/blockchain-explorer
+공식문서 https://github.com/hyperledger/blockchain-explorer
 ## 1단계 : 도커 이미지 다운로드
 https://hub.docker.com/r/hyperledger/explorer/
 https://hub.docker.com/r/hyperledger/explorer-db
