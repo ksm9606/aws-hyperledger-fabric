@@ -2107,6 +2107,10 @@ docker rm explorerdb.mynetwork.com
 13.209.56.166:8080
 ```
 
+## 7단계 : explorer 종료
+```
+docker-compose -f docker-compose.yaml down -v
+```
 
 
 # 10. git personal access token 
