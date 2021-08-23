@@ -1737,6 +1737,9 @@ sudo docker tag hyperledger/fabric-peer:x86_64-1.1.0-rc1 hyperledger/fabric-peer
 ```
 /base/docker-compose-base의 orderer에 다음 명령어 추가
 ![image](https://user-images.githubusercontent.com/54825978/127632612-ee941ac0-50d0-48e4-8c20-adcd9aaf2142.png)
+```
+image: hyperledger/fabric-orderer:latest
+```
 
 </br>
 host1~5에 peer 1개씩, orderer 1개씩</br>
@@ -1786,30 +1789,36 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 HOST1에서 작업 </br>
 
 모든 피어 노드에 Fabcar 체인코드 설치
+
+peer0.org1
 ```
-# peer0.org1
 docker exec cli peer chaincode install -n fabcar -v 1.0 -p github.com/chaincode/fabcar/go/
+```
 
 
-# peer0.org2
+peer0.org2
+```
 docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp -e CORE_PEER_ADDRESS=peer0.org2.example.com:8051 -e CORE_PEER_LOCALMSPID="Org2MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt cli peer chaincode install -n fabcar -v 1.0 -p github.com/chaincode/fabcar/go/
+```
 
-
-# peer0.org3
+peer0.org3
+```
 docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/users/Admin@org3.example.com/msp -e CORE_PEER_ADDRESS=peer0.org3.example.com:9051 -e CORE_PEER_LOCALMSPID="Org3MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org3.example.com/peers/peer0.org3.example.com/tls/ca.crt cli peer chaincode install -n fabcar -v 1.0 -p github.com/chaincode/fabcar/go/
+```
 
-
-# peer0.org4
+peer0.org4
+```
 docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/users/Admin@org4.example.com/msp -e CORE_PEER_ADDRESS=peer0.org4.example.com:10051 -e CORE_PEER_LOCALMSPID="Org4MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org4.example.com/peers/peer0.org4.example.com/tls/ca.crt cli peer chaincode install -n fabcar -v 1.0 -p github.com/chaincode/fabcar/go/
+```
 
-
-# peer0.org5
+peer0.org5
+```
 docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/users/Admin@org5.example.com/msp -e CORE_PEER_ADDRESS=peer0.org5.example.com:11051 -e CORE_PEER_LOCALMSPID="Org5MSP" -e CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/org5.example.com/peers/peer0.org5.example.com/tls/ca.crt cli peer chaincode install -n fabcar -v 1.0 -p github.com/chaincode/fabcar/go/
 ```
 
 mychannel 에 Fabcar 체인코드를 인스턴스화합니다.
 ```
-docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n fabcar -v 1.0 -c '{"Args":[]}' -P "OR ('Org1MSP.peer','Org2MSP.peer','Org3MSP.peer','Org4MSP.peer','Org5MSP.peer')"
+docker exec cli peer chaincode instantiate -o orderer.example.com:7050 --tls true --cafile /opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem -C mychannel -n fabcar -v 1.0 -c '{"Args":[]}' -P "OutOf (3, 'Org1MSP.peer', 'Org2MSP.peer', 'Org3MSP.peer', 'Org4MSP.peer', 'Org5MSP.peer')"
 ```
 
 ## 7단계 : 체인코드 호출 및 쿼리
@@ -1851,7 +1860,8 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 https://velog.io/@jeff0720/2018-11-18-2111-%EC%9E%91%EC%84%B1%EB%90%A8-iojomvsf0n
 ## 설치
 ```
-apt-get update && apt-get install nginx
+sudo apt-get update
+sudo apt-get install nginx
 ```
 ## Nginx 디렉터리 이동
 ```
@@ -1889,7 +1899,7 @@ server {
 
 ## node-server(파일명) 파일 연결
 ```
-ln -s /etc/nginx/sites-available/node-server /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/node-server /etc/nginx/sites-enabled/
 ```
 
 ## 재시작
@@ -1910,3 +1920,228 @@ ex) 		"target": "http://13.124.175.72:8081"
 
 ### api.service.ts (Org1~5 각각 자신의 주소로 수정)
 client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
+
+
+
+# 8. pm2 클라이언트 / 서버 실행
+```
+# pm2 설치
+npm install -g pm2@latest
+
+# 클라이언트 실행
+pm2 start npm --name "Client" -- start
+
+# 서버 실행
+pm2 start npm --name "Server" -- start
+
+# log 확인
+pm2 monit
+
+# pm2 kill
+pm2 kill
+```
+
+
+
+# 9. hyperledger explorer
+공식문서 https://github.com/hyperledger/blockchain-explorer
+
+## 1단계 : 도커 이미지 다운로드
+https://hub.docker.com/r/hyperledger/explorer/    </br>
+https://hub.docker.com/r/hyperledger/explorer-db
+```
+docker pull hyperledger/explorer
+```
+```
+docker pull hyperledger/explorer-db
+```
+
+## 2단계 : PostgreSQL 설치
+```
+sudo apt-get update
+sudo apt-get install postgresql postgresql-contrib
+```
+
+## 3단계 : Hyperledger Fabric 네트워크 실행
+
+## 4단계 : 구성
+$ raft-5node-swarm/docker-compose.yaml </br>
+$ raft-5node-swarm/config.json </br>
+$ raft-5node-swarm/connection-profile/first-network.json </br>
+
+### docker-compose.yaml
+```
+# SPDX-License-Identifier: Apache-2.0
+version: '2.1'
+
+volumes:
+  pgdata:
+  walletstore:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  explorerdb.mynetwork.com:
+    image: hyperledger/explorer-db:latest
+    container_name: explorerdb.mynetwork.com
+    hostname: explorerdb.mynetwork.com
+    environment:
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWORD=password
+    healthcheck:
+      test: "pg_isready -h localhost -p 5432 -q -U postgres"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - byfn
+
+  explorer.mynetwork.com:
+    image: hyperledger/explorer:latest
+    container_name: explorer.mynetwork.com
+    hostname: explorer.mynetwork.com
+    environment:
+      - DATABASE_HOST=explorerdb.mynetwork.com
+      - DATABASE_DATABASE=fabricexplorer
+      - DATABASE_USERNAME=hppoc
+      - DATABASE_PASSWD=password
+      - LOG_LEVEL_APP=debug
+      - LOG_LEVEL_DB=debug
+      - LOG_LEVEL_CONSOLE=info
+      - LOG_CONSOLE_STDOUT=true
+      - DISCOVERY_AS_LOCALHOST=false
+    volumes:
+      - ./config.json:/opt/explorer/app/platform/fabric/config.json
+      - ./connection-profile:/opt/explorer/app/platform/fabric/connection-profile
+      - ./crypto-config:/tmp/crypto
+      - walletstore:/opt/explorer/wallet
+    ports:
+      - 8080:8080
+    depends_on:
+      explorerdb.mynetwork.com:
+        condition: service_healthy
+    networks:
+      - byfn
+```
+
+### config.json
+```
+{
+        "network-configs": {
+                "first-network": {
+                        "name": "first-network",
+                        "profile": "./connection-profile/first-network.json"
+                }
+        },
+        "license": "Apache-2.0"
+}
+```
+
+### connection-profile/first-network.json
+```
+{
+        "name": "first-network",
+        "version": "1.0.0",
+        "client": {
+                "tlsEnable": true,
+                "adminCredential": {
+                        "id": "exploreradmin",
+                        "password": "exploreradminpw"
+                },
+                "enableAuthentication": true,
+                "organization": "Org1MSP",
+                "connection": {
+                        "timeout": {
+                                "peer": {
+                                        "endorser": "300"
+                                },
+                                "orderer": "300"
+                        }
+                }
+        },
+        "channels": {
+                "mychannel": {
+                        "peers": {
+                                "peer0.org1.example.com": {}
+                        }
+                }
+        },
+        "organizations": {
+                "Org1MSP": {
+                        "mspid": "Org1MSP",
+                        "adminPrivateKey": {
+                                "path": "/tmp/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/3217e77a01fda41ef46ce3945b55cdc99e748a00de1f7d132ef76f2fc79b6c2a_sk"
+                        },
+                        "peers": ["peer0.org1.example.com"],
+                        "signedCert": {
+                                "path": "/tmp/crypto/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/Admin@org1.example.com-cert.pem"
+                        }
+                }
+        },
+        "peers": {
+                "peer0.org1.example.com": {
+                        "tlsCACerts": {
+                                "path": "/tmp/crypto/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+                        },
+                        "url": "grpcs://peer0.org1.example.com:7051"
+                }
+        }
+}
+```
+
+## 5단계 : explorer 시작
+```
+docker-compose -f docker-compose.yaml up -d
+```
+explorer.mynetwork.com Exited(1) 되는 문제가 발생하면
+![image](https://user-images.githubusercontent.com/54825978/130168989-1e8c56c4-81f7-43bf-9e40-4960449471d7.png)
+```
+docker stop explorerdb.mynetwork.com
+docker rm explorerdb.mynetwork.com
+```
+
+
+## 6단계 : explorer 진입
+```
+13.209.56.166:8080
+```
+
+## 7단계 : explorer 종료
+```
+docker-compose -f docker-compose.yaml down -v
+```
+
+
+# 10. git personal access token 
+## Linux 기반 OS용 ⤴
+Linux의 경우 사용자 이름과 이메일 주소로 로컬 GIT 클라이언트를 구성해야 합니다.
+
+$ git config --global user.name "your_github_username"
+$ git config --global user.email "your_github_email"
+$ git config -l
+GIT가 구성되면 이를 사용하여 GitHub에 액세스할 수 있습니다. 예 :
+
+$ git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY
+> Cloning into `Spoon-Knife`...
+$ Username for 'https://github.com' : username
+$ Password for 'https://github.com' : give your personal access token here
+이제 토큰을 기억하기 위해 컴퓨터에 지정된 레코드를 캐시합니다.
+
+$ git config --global credential.helper cache
+필요한 경우 언제든지 다음을 통해 캐시 레코드를 삭제할 수 있습니다.
+
+$ git config --global --unset credential.helper
+$ git config --system --unset credential.helper
+이제 로 당겨 -v확인하십시오.
+
+$ git pull -v
+
+
+
