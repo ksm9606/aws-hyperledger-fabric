@@ -2119,7 +2119,89 @@ docker-compose -f docker-compose.yaml down -v
 ```
 
 
-# 10. git personal access token 
+
+
+# 10. MongoDB 설치
+### 환경 ( AWS Ubuntu 20.04 LTS)
+
+## 1단계 : 터미널에서 MongoDB 공개 GPG 키를 가져오도록 합니다.
+```
+wget -qO - https://www.mongodb.org/static/pgp/server-4.4.asc | sudo apt-key add -
+```
+## 2단계 : 터미널에 다음 명령어 입력
+```
+echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/4.4 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-4.4.list
+```
+## 3단계 : MongoDB를 위한 list 파일을 로컬 패키지 데이터베이스에 추가했기 때문에 로컬 패키지 데이터베이스를 업데이트합니다.
+```
+sudo apt update
+```
+## 4단계 : MongoDB 패키지 설치 (둘 중 선택)
+1. 최신 안정화 버전
+```
+sudo apt install -y mongodb-org
+```
+2. 특정 릴리즈 버전
+```
+sudo apt install -y mongodb-org=4.4.2 mongodb-org-server=4.4.2 mongodb-org-shell=4.4.2 mongodb-org-mongos=4.4.2 mongodb-org-tools=4.4.2
+```
+## 5단계 : 실행
+```
+sudo systemctl start mongod
+```
+
+## 6단계 : 계정 생성
+'mongo'를 입력해 MongoDB 접속
+```
+mongo
+```
+관리자 생성
+```
+use admin
+db.createUser({ user: "사용자 계정",
+  pwd: "패스워드",
+  roles: [ "userAdminAnyDatabase",
+    "dbAdminAnyDatabase",
+    "readWriteAnyDatabase"
+  ]
+})
+```
+DB 계정 생성
+```
+use customDB
+db.createUser({ user: "계정",
+  pwd: "패스워드",
+  roles: ["dbAdmin", "readWrite"]
+})
+```
+## 7단계 : 보안 설정
+MongoDB 설정 수정
+```
+sudo vi /etc/mongod.conf
+```
+bindIp를 주석처리하면 bindIp에 나열된 ip가 아니더라도 MongoDB에 접근할 수 있습니다. 우리는 EC2 Security Group에서 접근을 제어하기 때문에 bindIp옵션을 주석처리합니다.
+```
+# network interfaces
+net:
+  port: 27017
+  #bindIp: 127.0.0.1
+```
+같은 파일의 security 옵션을 주석해제하고, authorization: enabled옵션을 추가합니다. 이 옵션을 설정하면 MongoDB에 익명으로 로그인할 수 없습니다.
+```
+security:
+    authorization: enabled
+```
+변경 사항 적용
+```
+service mongod restart
+```
+## 8단계 : EC2 Security Group 설정
+EC2 Instance에 설정된 Security Group의 inbound rule에 MongoDB 포트를 열어줍니다. 포트를 변경하지 않으셨다면 27017번이 기본 MongoDB 포트입니다.</br>
+Source는 DB에 접근하는 서버의 ip 혹은 현재 작업하는 위치의 ip로 설정합니다. 현재 작업 위치가 신뢰할 수 없는 네트워크일 경우, 작업이 끝난 뒤 해당 rule을 삭제하는 것이 안전합니다.
+
+
+
+# 11. git personal access token 
 ## Linux 기반 OS용 ⤴
 Linux의 경우 사용자 이름과 이메일 주소로 로컬 GIT 클라이언트를 구성해야 합니다.
 
