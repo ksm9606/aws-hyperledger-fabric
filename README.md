@@ -2162,7 +2162,7 @@ sudo apt install -y mongodb-org=4.4.2 mongodb-org-server=4.4.2 mongodb-org-shell
 ```
 ## 5단계 : 실행
 ```
-sudo systemctl start mongod
+sudo service mongod start
 ```
 
 ## 6단계 : 계정 생성
