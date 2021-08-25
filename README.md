@@ -5,7 +5,7 @@
 # ✅1. 개요
 AWS EC2와 docker swarm을 사용해, amazon managed blockchain 없이 하이퍼레저 패브릭 설치 및 raft 오더러 서비스 사용
 
-# ✅ 2. 네트워크 구성
+# ✅2. 네트워크 구성
 
 RAFT 오더링 서비스를 사용하기 위해, AWS EC2에서 인스턴스 5개 생성.
 각 인스턴스는 블록체인 노드가 된다. 
@@ -20,7 +20,7 @@ HOST5 : Orderer5, CA, peer0.org5, msp, couchdb</br>
 
 
 
-# ✅ 3. 환경설정
+# ✅3. 환경설정
 
 ## 3.1 AWS EC2서버 생성
 
@@ -193,7 +193,7 @@ docker-compose -version
 ```
 
 
-# ✅ 4. Docker-Swarm
+# ✅4. Docker-Swarm
 
 HOST1에 cli 기능과 docker_swarm 을 사용할 예정
 docker_swarm을 통해 5개의 서버를 관리할 예정
@@ -259,7 +259,7 @@ curl -sSL http://bit.ly/2ysbOFE | bash -s -- 1.4.12 1.5.0 0.4.22
 ```
 
 
-# ✅ 5. 데모
+# ✅5. 데모
 ## 1단계 : HOST 불러오기
 
 모든 인스턴스 접속
@@ -1855,7 +1855,7 @@ docker exec -e CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fa
 ```
 
 
-# ✅ 6. ec2 웹 서버
+# ✅6. ec2 웹 서버
 
 ## 1단계 : connection.yaml 수정
 ![image](https://user-images.githubusercontent.com/54825978/129148630-e3b1285c-d6b7-4f56-8cb8-3317d23d3c9b.png)
@@ -1916,7 +1916,7 @@ sudo systemctl restart nginx
 
 
 
-# ✅ 7. 클라이언트
+# ✅7. 클라이언트
 ## Proxy 수정
 ### Client proxy 	(Org1~5 각각 자신의 주소로 수정)
 자기 자신을 가르킬 것 
@@ -1927,7 +1927,7 @@ client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
 
 
 
-# ✅ 8. pm2 클라이언트 / 서버 실행
+# ✅8. pm2 클라이언트 / 서버 실행
 ```
 # pm2 설치
 npm install -g pm2@latest
@@ -1947,7 +1947,7 @@ pm2 kill
 
 
 
-# ✅ 9. hyperledger explorer
+# ✅9. hyperledger explorer
 공식문서 https://github.com/hyperledger/blockchain-explorer
 
 ## 1단계 : 도커 이미지 다운로드
@@ -2125,7 +2125,7 @@ docker-compose -f docker-compose.yaml down -v
 
 
 
-# ✅ 10. MongoDB 설치
+# ✅10. MongoDB 설치
 ### 환경 ( AWS Ubuntu 20.04 LTS)
 
 ## 1단계 : 터미널에서 MongoDB 공개 GPG 키를 가져오도록 합니다.
@@ -2205,7 +2205,7 @@ Source는 DB에 접근하는 서버의 ip 혹은 현재 작업하는 위치의 i
 
 
 
-# ✅ 11. git personal access token 
+# ✅11. git personal access token 
 ## Linux 기반 OS용 ⤴
 Linux의 경우 사용자 이름과 이메일 주소로 로컬 GIT 클라이언트를 구성해야 합니다.
 
