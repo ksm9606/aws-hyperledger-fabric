@@ -6,10 +6,12 @@
 ### [✅ 5. 데모](#5-데모)
 ### [✅ 6. ec2 웹 서버](#6-ec2-웹-서버)
 ### [✅ 7. 클라이언트](#7-클라이언트)
-### [✅ 8. pm2 클라이언트 / 서버 실행](#8-pm2-클라이언트-서버-실행)
+### [✅ 8. pm2 클라이언트와 서버 실행](#8-pm2-클라이언트와-서버-실행)
 ### [✅ 9. hyperledger explorer](#9-hyperledger-explorer)
 ### [✅ 10. MongoDB 설치](#10-MongoDB-설치)
 ### [✅ 11. git personal access token](#11-git-personal-access-token)
+
+</br></br></br>
 
 # ✅1. 개요
 AWS EC2와 docker swarm을 사용해, amazon managed blockchain 없이 하이퍼레저 패브릭 설치 및 raft 오더러 서비스 사용
@@ -1936,7 +1938,7 @@ client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
 
 
 
-# ✅8. pm2 클라이언트 / 서버 실행
+# ✅8. pm2 클라이언트와 서버 실행
 ```
 # pm2 설치
 npm install -g pm2@latest
