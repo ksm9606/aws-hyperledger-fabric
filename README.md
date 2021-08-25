@@ -1,15 +1,15 @@
 # 목차
 ### [✅ 1. 개요](#1-개요)
-### [✅ 2. 네트워크 구성](#2-네트워크 구성)
+### [✅ 2. 네트워크 구성](#2-네트워크-구성)
 ### [✅ 3. 환경설정](#3-환경설정)
 ### [✅ 4. Docker-Swarm](#4-Docker-Swarm)
-### [✅ 5. 데모](#5.-데모)
-### [✅ 6. ec2 웹 서버](#6.-ec2-웹-서버)
-### [✅ 7. 클라이언트](#7.-클라이언트)
-### [✅ 8. pm2 클라이언트 / 서버 실행](#8.-pm2-클라이언트-/-서버 실행)
-### [✅ 9. hyperledger explorer](#9.-hyperledger-explorer)
-### [✅ 10. MongoDB 설치](#10.-MongoDB-설치)
-### [✅ ✅ 11. git personal access token](#✅ 11.-git-personal-access-token)
+### [✅ 5. 데모](#5-데모)
+### [✅ 6. ec2 웹 서버](#6-ec2-웹-서버)
+### [✅ 7. 클라이언트](#7-클라이언트)
+### [✅ 8. pm2 클라이언트 / 서버 실행](#8-pm2-클라이언트-/-서버 실행)
+### [✅ 9. hyperledger explorer](#9-hyperledger-explorer)
+### [✅ 10. MongoDB 설치](#10-MongoDB-설치)
+### [✅ ✅ 11. git personal access token](#✅ 11-git-personal-access-token)
 
 # ✅1. 개요
 AWS EC2와 docker swarm을 사용해, amazon managed blockchain 없이 하이퍼레저 패브릭 설치 및 raft 오더러 서비스 사용
