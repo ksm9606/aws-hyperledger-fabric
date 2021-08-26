@@ -2162,8 +2162,19 @@ sudo apt install -y mongodb-org=4.4.2 mongodb-org-server=4.4.2 mongodb-org-shell
 ```
 ## 5단계 : 실행
 ```
+# 실행
 sudo service mongod start
+
+# 리눅스 실행 시 mongoDB 자동 실행
+sudo systemctl enable mongod
+
+# mongoDB 실행 확인
+sudo systemctl mongod
 ```
+
+### mongod: unrecognized service Error
+https://jipro.tistory.com/45
+
 
 ## 6단계 : 계정 생성
 'mongo'를 입력해 MongoDB 접속
