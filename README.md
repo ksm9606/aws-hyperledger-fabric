@@ -1928,7 +1928,7 @@ sudo systemctl restart nginx
 
 
 # ✅7. 클라이언트
-## Proxy 수정
+## Proxy, api.service 수정
 ### Client proxy 	(Org1~5 각각 자신의 주소로 수정)
 자기 자신을 가르킬 것 
 ex) 		"target": "http://13.124.175.72:8081"
