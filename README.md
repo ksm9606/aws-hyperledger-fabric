@@ -1944,10 +1944,10 @@ client/src/app/api.service.ts	const baseURL = `http://13.124.175.72:8081`;
 npm install -g pm2@latest
 
 # 클라이언트 실행
-pm2 start npm --name "Client" -- start
+pm2 start npm --name "Client" -- start --watch
 
 # 서버 실행
-pm2 start npm --name "Server" -- start
+pm2 start npm --name "Server" -- start --watch
 
 # log 확인
 pm2 monit
