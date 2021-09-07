@@ -2166,7 +2166,7 @@ MongoDB 설정 수정
 ```
 sudo vi /etc/mongod.conf
 ```
-bindIp를 주석처리하면 bindIp에 나열된 ip가 아니더라도 MongoDB에 접근할 수 있습니다. 우리는 EC2 Security Group에서 접근을 제어하기 때문에 bindIp옵션을 주석처리합니다.
+bindIp를 주석처리하면 bindIp에 나열된 ip가 아니더라도 MongoDB에 접근할 수 있습니다. 우리는 EC2 Security Group에서 접근을 제어하기 때문에 bindIp옵션을 주석처리합니다.</br>
 여기서 mongoDB compass를 사용하려면 bindIp: 0.0.0.0으로 만듭니다.
 ```
 # network interfaces
