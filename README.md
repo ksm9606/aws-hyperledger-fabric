@@ -2169,7 +2169,7 @@ sudo service mongod start
 sudo systemctl enable mongod
 
 # mongoDB 실행 확인
-sudo systemctl mongod
+sudo systemctl status mongod
 ```
 
 ### mongod: unrecognized service Error
