@@ -2167,10 +2167,12 @@ MongoDB 설정 수정
 sudo vi /etc/mongod.conf
 ```
 bindIp를 주석처리하면 bindIp에 나열된 ip가 아니더라도 MongoDB에 접근할 수 있습니다. 우리는 EC2 Security Group에서 접근을 제어하기 때문에 bindIp옵션을 주석처리합니다.
+여기서 mongoDB compass를 사용하려면 bindIp: 0.0.0.0으로 만듭니다.
 ```
 # network interfaces
 net:
   port: 27017
+  bindIp: 0.0.0.0
   #bindIp: 127.0.0.1
 ```
 같은 파일의 security 옵션을 주석해제하고, authorization: enabled옵션을 추가합니다. 이 옵션을 설정하면 MongoDB에 익명으로 로그인할 수 없습니다.
@@ -2182,6 +2184,18 @@ security:
 ```
 sudo service mongod restart
 ```
+
+### compass를 사용하려면
+인스턴스 보안설정 인바운드 규칙 설정
+![image](https://user-images.githubusercontent.com/54825978/132289434-0842b107-341e-408c-b3f5-18ad2f01f7b6.png)
+
+compass 설정
+![image](https://user-images.githubusercontent.com/54825978/132289494-38a5f302-57bb-4264-8bcb-aa70b7515d74.png)
+
+hostname에 본인의 탄력적 IP 주소를 넣는다
+![image](https://user-images.githubusercontent.com/54825978/132289554-be07331e-5944-47b0-9aed-8e5c71fdd1c6.png)
+
+
 
 ## 6단계 : EC2 Security Group 설정 (선택 사항)
 EC2 Instance에 설정된 Security Group의 inbound rule에 MongoDB 포트를 열어줍니다. 포트를 변경하지 않으셨다면 27017번이 기본 MongoDB 포트입니다.</br>
