@@ -2175,9 +2175,11 @@ net:
   bindIp: 0.0.0.0
   #bindIp: 127.0.0.1
 ```
-같은 파일의 security 옵션을 주석해제하고, authorization: enabled옵션을 추가합니다. 이 옵션을 설정하면 MongoDB에 익명으로 로그인할 수 없습니다.
+같은 파일의 security 옵션을 주석해제하고, authorization: enabled 옵션을 추가합니다. 이 옵션을 설정하면 MongoDB에 익명으로 로그인할 수 없습니다. </br>
+익명으로 하려면 authorization: disabled 옵션을 추가합니다.
 ```
 security:
+    #authorization: enabled
     authorization: disabled
 ```
 변경 사항 적용
