@@ -1734,21 +1734,21 @@ docker-compose를 사용하여 모든 호스트를 불러옵니다.
 # fabric-tools 최신 버전으로 pull
 sudo docker pull hyperledger/fabric-orderer:x86_64-1.1.0-rc1
 # tag 수정
-sudo docker tag hyperledger/fabric-orderer:x86_64-1.1.0-rc1 hyperledger/fabric-tools:latest
+sudo docker image tag hyperledger/fabric-orderer:x86_64-1.1.0-rc1 hyperledger/fabric-tools:latest
 ```
 ### ERROR: manifest for hyperledger/fabric-tools:latest not found
 ```
 # fabric-tools 최신 버전으로 pull
 sudo docker pull hyperledger/fabric-tools:x86_64-1.1.0-rc1
 # tag 수정
-sudo docker tag hyperledger/fabric-tools:x86_64-1.1.0-rc1 hyperledger/fabric-tools:latest
+sudo docker image tag hyperledger/fabric-tools:x86_64-1.1.0-rc1 hyperledger/fabric-tools:latest
 ```
 ### ERROR: manifest for hyperledger/fabric-peer:latest not found
 ```
 # fabric-peer 최신 버전으로 pull
 sudo docker pull hyperledger/fabric-peer:x86_64-1.1.0-rc1
 # tag 수정
-sudo docker tag hyperledger/fabric-peer:x86_64-1.1.0-rc1 hyperledger/fabric-peer:latest
+sudo docker image tag hyperledger/fabric-peer:x86_64-1.1.0-rc1 hyperledger/fabric-peer:latest
 ```
 /base/docker-compose-base의 orderer에 다음 명령어 추가
 ![image](https://user-images.githubusercontent.com/54825978/127632612-ee941ac0-50d0-48e4-8c20-adcd9aaf2142.png)
