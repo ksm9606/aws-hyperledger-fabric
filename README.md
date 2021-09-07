@@ -2188,15 +2188,15 @@ sudo service mongod restart
 ```
 
 ### compass를 사용하려면
-인스턴스 보안설정 인바운드 규칙 설정
+인스턴스 보안설정 인바운드 규칙 설정</br>
 ![image](https://user-images.githubusercontent.com/54825978/132289434-0842b107-341e-408c-b3f5-18ad2f01f7b6.png)
 
-</br>
-compass 설정
+
+compass 설정 </br>
 ![image](https://user-images.githubusercontent.com/54825978/132289494-38a5f302-57bb-4264-8bcb-aa70b7515d74.png)
 
-</br>
-hostname에 본인의 탄력적 IP 주소를 넣는다
+
+hostname에 본인의 탄력적 IP 주소를 넣는다 </br>
 ![image](https://user-images.githubusercontent.com/54825978/132289554-be07331e-5944-47b0-9aed-8e5c71fdd1c6.png)
 
 
