@@ -2180,7 +2180,7 @@ security:
 ```
 변경 사항 적용
 ```
-service mongod restart
+sudo service mongod restart
 ```
 
 ## 6단계 : EC2 Security Group 설정 (선택 사항)
