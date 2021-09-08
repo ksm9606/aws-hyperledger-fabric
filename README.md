@@ -2218,7 +2218,10 @@ sudo systemctl enable mongod
 sudo systemctl status mongod
 ```
 
-### mongod: unrecognized service Error
+## 에러 /var/run/mongod.pid is insecure
+![에렁](https://user-images.githubusercontent.com/54825978/132428351-71d71775-68b3-40ae-872d-eb3394c48a68.png)
+mongod.pid 삭제 후 실행
+## 에러 mongod: unrecognized service Error
 https://jipro.tistory.com/45 </br>
 https://whiumisc.tistory.com/36
 ```
