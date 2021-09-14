@@ -2215,7 +2215,7 @@ sudo service mongod start
 sudo systemctl enable mongod
 
 # mongoDB 실행 확인
-sudo systemctl status mongod
+sudo service mongod status
 ```
 
 ## 에러 /var/run/mongod.pid is insecure
